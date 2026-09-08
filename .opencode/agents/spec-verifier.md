@@ -1,6 +1,6 @@
 ---
 description: Verifies the Acceptance criteria of a spec in specs/ (e.g. 01-feed-home). Runs lint/tsc/build, inspects the implementation, checks Next.js 16 recommended practices via Context7 and node_modules/next/dist/docs/, and uses Playwright MCP with vision to compare implemented screens against the references/pantallas comps. Marks the spec's checkboxes and reports pass/fail with evidence. Use when asked to verify, review, or check off a spec's acceptance criteria.
-mode: primary
+mode: subagent
 model: opencode-go/qwen3.6-plus
 permission:
   edit:

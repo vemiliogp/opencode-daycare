@@ -64,13 +64,13 @@ Colores de avatar/badge y la etiqueta visible en español (LOGRO, ACTIVIDAD, ANU
 
 ## Acceptance criteria
 
-- [ ] `npm run dev` levanta `/` sin errores en consola.
-- [ ] En desktop (≥1024px), `/` es visualmente 1:1 con `references/pantallas/feed.dc.html` (colores, tipografías, tamaños, espaciados y sombras), verificado lado a lado.
-- [ ] Los 3 posts se renderizan en orden (logro 14:20, actividad 09:40 con placeholder de foto, anuncio 07:50) con corazones 3/5/8 y comentarios 1/2/0.
-- [ ] La sidebar aparece en `/` desde el layout compartido, con Feed marcado activo.
-- [ ] Cero 404 al clickear Niños, Avisos, Mi cuenta, Nueva publicación, Editar, comentarios, foto y logout.
-- [ ] En viewport <1024px el botón hamburguesa abre la sidebar como drawer y se cierra tocando el overlay.
-- [ ] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
+- [x] `npm run dev` levanta `/` sin errores en consola.
+- [x] En desktop (≥1024px), `/` es visualmente 1:1 con `references/pantallas/feed.dc.html` (colores, tipografías, tamaños, espaciados y sombras), verificado lado a lado.
+- [x] Los 3 posts se renderizan en orden (logro 14:20, actividad 09:40 con placeholder de foto, anuncio 07:50) con corazones 3/5/8 y comentarios 1/2/0.
+- [x] La sidebar aparece en `/` desde el layout compartido, con Feed marcado activo.
+- [x] Cero 404 al clickear Niños, Avisos, Mi cuenta, Nueva publicación, Editar, comentarios, foto y logout.
+- [x] En viewport <1024px el botón hamburguesa abre la sidebar como drawer y se cierra tocando el overlay.
+- [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
 
 ## Decisions
 

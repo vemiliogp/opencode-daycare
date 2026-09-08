@@ -36,9 +36,17 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Workflow de specs
 
-- Features grandes: `/spec` (define y guarda `specs/NN-slug.md` en estado `Draft`; el usuario lo pasa a `Approved`) → `/spec-impl NN-slug` (crea branch `spec-NN-slug` e implementa paso a paso). `specs/` aún no existe.
+- Features grandes: `/spec` (define y guarda `specs/NN-slug.md` en estado `Draft`; el usuario lo pasa a `Approved`) → `/spec-impl NN-slug` (crea branch `spec-NN-slug` e implementa paso a paso) → `/spec-check NN-slug` (verifica criterios de aceptación). `specs/` aún no existe.
 - Skills instalados en `.agents/skills/`, versionados por `skills-lock.json`.
 - `CLAUDE.md` solo importa este archivo (`@AGENTS.md`); no duplicar contenido ahí.
+
+## Agente spec-verifier
+
+- Definido en `.opencode/agent/spec-verifier.md`. Verifica los criterios de aceptación de un spec en `specs/`.
+- Ejecuta `npm run lint`, `npx tsc --noEmit`, `npm run build`; inspecciona la implementación; compara pantallas con los comps de `references/pantallas/` usando Playwright MCP con visión; valida prácticas de Next.js 16 vía Context7 y `node_modules/next/dist/docs/`.
+- Marca los checkboxes del spec (`- [ ]` → `- [x]`) solo con evidencia concreta. **Nunca modifica código de la app**, solo edita `specs/**`.
+- Se invoca vía comando `/spec-check NN-slug` (o `/spec-check 01`, `/spec-check feed-home`, etc.). Si no se pasa argumento, lista los specs disponibles y pregunta cuál verificar.
+- Todos los artefactos de Playwright van en `.playwright-mcp/` (gitignored).
 
 ## Spec Driven Development
 
