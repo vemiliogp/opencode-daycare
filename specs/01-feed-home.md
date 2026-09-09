@@ -1,6 +1,6 @@
 # SPEC 01 — Feed como home (/)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** Ninguna
 > **Date:** 2026-09-04
 > **Objective:** Implementar el comp `references/pantallas/feed.dc.html` como home (`/`) de OpenDayCare, estático y sin BD, con fidelidad visual 1:1 en desktop y sidebar en drawer para móvil.

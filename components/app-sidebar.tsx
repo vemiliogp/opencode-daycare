@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 type NavItem = {
   label: string;
   href: string;
-  active: boolean;
   icon: ReactNode;
 };
 
@@ -14,7 +14,6 @@ const navItems: NavItem[] = [
   {
     label: "Feed",
     href: "/",
-    active: true,
     icon: (
       <svg
         width="19"
@@ -32,8 +31,7 @@ const navItems: NavItem[] = [
   },
   {
     label: "Niños",
-    href: "#",
-    active: false,
+    href: "/kids",
     icon: (
       <svg
         width="19"
@@ -54,7 +52,6 @@ const navItems: NavItem[] = [
   {
     label: "Avisos",
     href: "#",
-    active: false,
     icon: (
       <svg
         width="19"
@@ -73,7 +70,6 @@ const navItems: NavItem[] = [
   {
     label: "Mi cuenta",
     href: "#",
-    active: false,
     icon: (
       <svg
         width="19"
@@ -178,8 +174,13 @@ function Brand() {
 }
 
 function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
+  const pathname = usePathname();
+  const isActive =
+    item.href === "/"
+      ? pathname === "/"
+      : item.href !== "#" && pathname.startsWith(item.href);
   const base = "flex items-center gap-3 rounded-xl px-3 py-2.75 text-[14.5px]";
-  const className = item.active
+  const className = isActive
     ? `${base} bg-[#FBE3D8] font-extrabold text-[#D9583C]`
     : `${base} font-semibold text-[#6E6359]`;
   const content = (
@@ -191,6 +192,13 @@ function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate: () => vo
   if (item.href === "/") {
     return (
       <Link href="/" onClick={onNavigate} className={className}>
+        {content}
+      </Link>
+    );
+  }
+  if (item.href !== "#") {
+    return (
+      <Link href={item.href} onClick={onNavigate} className={className}>
         {content}
       </Link>
     );
