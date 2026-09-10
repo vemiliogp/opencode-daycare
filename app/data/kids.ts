@@ -23,6 +23,42 @@ export type Kid = {
   parents: Parent[];
 };
 
+export const rooms: string[] = ["Soles", "Lunas", "Estrellas", "Luceros"];
+
+export const avatarColors: AvatarColor[] = ["sky", "pink", "green", "yellow", "purple", "periwinkle"];
+
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function calculateAge(birthDate: string): number {
+  const [day, month, year] = birthDate.split("/").map(Number);
+  const birth = new Date(year, month - 1, day);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+export function currentMonthYear(): string {
+  const months = [
+    "ene", "feb", "mar", "abr", "may", "jun",
+    "jul", "ago", "sep", "oct", "nov", "dic",
+  ];
+  const now = new Date();
+  return `${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+export function formatBirthDate(raw: string): string {
+  return raw;
+}
+
 export const kids: Kid[] = [
   {
     id: "mateo-fernandez",
