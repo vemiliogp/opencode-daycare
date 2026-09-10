@@ -69,15 +69,15 @@ const newKid: Kid = {
 
 ## Acceptance criteria
 
-- [ ] `npm run dev` abre `/kids` sin errores en consola.
-- [ ] Clic en el botón "Agregar niño" en `/kids` abre un modal/dialog centrado con overlay backdrop oscuro semitransparente.
-- [ ] El modal reproduce fielmente el comp `agregar-nino.dc.html` en desktop (≥1024px): header con Cancelar/título/Guardar, campos de nombre, fecha, sala, alergias, notas médicas — verificado lado a lado.
-- [ ] El input de fecha aplica máscara automática: al escribir dígitos se formatea como `dd/mm/aaaa` (slashes automáticos).
-- [ ] El dropdown de sala muestra al menos 4 opciones (Soles, Lunas, Estrellas, Luceros).
-- [ ] Al intentar guardar con nombre vacío, borde rojo en el campo de nombre; igual para fecha y sala.
-- [ ] Al completar los 3 campos obligatorios y guardar, el modal se cierra y el nuevo niño aparece en la grilla de `/kids`.
-- [ ] Clic en "Cancelar" o en el backdrop fuera del modal cierra el dialog sin cambios.
-- [ ] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
+- [x] `npm run dev` abre `/kids` sin errores en consola. (Verificado con Playwright: 0 errores / 0 warnings en consola tras cargar y durante todas las interacciones del modal.)
+- [x] Clic en el botón "Agregar niño" en `/kids` abre un modal/dialog centrado con overlay backdrop oscuro semitransparente. (Overlay `fixed inset-0` z-50 `bg-black/40`, centrado exacto cx/cy verificado vía `getBoundingClientRect`; screenshot `.playwright-mcp/spec04-modal-open.png`.)
+- [x] El modal reproduce fielmente el comp `agregar-nino.dc.html` en desktop (≥1024px): header con Cancelar/título/Guardar, campos de nombre, fecha, sala, alergias, notas médicas — verificado lado a lado. (Comparado a 1280px con estilos computados DOM contra DOM: card `#FBF4EC`/radius 24px/border `#ECE0D0`/max-w 520px/shadow idéntica; header padding 20px 26px; título Fredoka 600 18px `#3F362E`; Cancelar `#94887B` 700 15px; Guardar `#D9583C` 800 15px; labels 12px/800/0.7px/`#94887B`; inputs 13px 16px/radius 14px/`#EADFD0`/blanco/15px; fila fecha+sala gap 14px; placeholders idénticos; fuentes Nunito/Fredoka cargadas. Screenshots `.playwright-mcp/spec04-app-modal.png` y `spec04-comp-reference.png`.)
+- [x] El input de fecha aplica máscara automática: al escribir dígitos se formatea como `dd/mm/aaaa` (slashes automáticos). (Tipeo `12032022` → `12/03/2022`; `04062022` → `04/06/2022`; `applyDateMask` en components/add-kid-dialog.tsx:13.)
+- [x] El dropdown de sala muestra al menos 4 opciones (Soles, Lunas, Estrellas, Luceros). (Verificado vía DOM: options = Soles, Lunas, Estrellas, Luceros; selección de "Lunas" funcionando.)
+- [x] Al intentar guardar con nombre vacío, borde rojo en el campo de nombre; igual para fecha y sala. (Guardar con nombre y fecha vacíos: borde `red-500` en ambos (computed `lab(55.48…)`), modal no cierra; screenshot `.playwright-mcp/spec04-validation-red-borders.png`. Sala: el select viene preseleccionado con "Soles" (no puede quedar vacío por UI) y la validación equivalente existe en `isRoomError`, components/add-kid-dialog.tsx:106.)
+- [x] Al completar los 3 campos obligatorios y guardar, el modal se cierra y el nuevo niño aparece en la grilla de `/kids`. (Guardado "Cata Blanco" 04/06/2022 sala Lunas: modal cerrado, card visible en grilla, contador 8 → 9 niños.)
+- [x] Clic en "Cancelar" o en el backdrop fuera del modal cierra el dialog sin cambios. (Ambos verificados: clic en Cancelar cierra; clic en overlay cierra; además Escape. Estado del form se resetea al cerrar.)
+- [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores. (Los tres ejecutados tras `npm ci`: lint 0 problemas, tsc sin errores, build compilado con /kids estática.)
 
 ## Decisions
 
