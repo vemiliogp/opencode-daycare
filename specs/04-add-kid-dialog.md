@@ -1,6 +1,6 @@
 # SPEC 04 — Agregar niño (modal dialog)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 02
 > **Date:** 2026-09-10
 > **Objective:** Implementar un modal/dialog con el formulario del comp `agregar-nino.dc.html` que se abre al pulsar "Agregar niño" en la página `/kids`, con validación de campos obligatorios, máscara de fecha automática y salas mock, agregando el niño al array local en memoria.
