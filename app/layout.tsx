@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Fredoka, Nunito } from "next/font/google";
-import AppSidebar from "@/components/app-sidebar";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -17,15 +16,13 @@ export const metadata: Metadata = {
   title: "OpenDayCare · Sala Soles",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="es"
       className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <AppSidebar>{children}</AppSidebar>
-      </body>
+      <body className="min-h-full antialiased">{children}</body>
     </html>
   );
 }
