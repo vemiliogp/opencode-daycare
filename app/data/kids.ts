@@ -1,6 +1,6 @@
 export type AvatarColor = "sky" | "pink" | "green" | "yellow" | "purple" | "periwinkle";
 export type ParentStatus = "active" | "pending";
-export type ParentRole = "mother" | "father";
+export type ParentRole = "mother" | "father" | "tutor";
 
 export type Parent = {
   name: string;
