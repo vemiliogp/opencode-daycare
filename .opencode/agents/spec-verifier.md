@@ -16,6 +16,8 @@ permission:
     "npm run build*": allow
     "npm run dev*": allow
     "npx tsc*": allow
+    "tail*": allow
+    "curl*": allow
 ---
 
 # Spec Verifier
