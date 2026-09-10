@@ -20,6 +20,28 @@ function applyDateMask(value: string): string {
   return result;
 }
 
+function isValidDateFormat(date: string): boolean {
+  const match = date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return false;
+
+  const [, dayStr, monthStr, yearStr] = match;
+  const day = parseInt(dayStr, 10);
+  const month = parseInt(monthStr, 10);
+  const year = parseInt(yearStr, 10);
+
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if (day > daysInMonth) return false;
+
+  const inputDate = new Date(year, month - 1, day);
+  const now = new Date();
+  if (inputDate > now) return false;
+
+  return true;
+}
+
 export default function AddKidDialog({ open, onClose, onSave }: AddKidDialogProps) {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -44,7 +66,7 @@ export default function AddKidDialog({ open, onClose, onSave }: AddKidDialogProp
 
   const handleSave = () => {
     setSubmitted(true);
-    if (!name.trim() || !birthDate.trim() || !room) return;
+    if (!name.trim() || !birthDate.trim() || !room || !isValidDateFormat(birthDate)) return;
 
     const newKid: Kid = {
       id: slugify(name.trim()),
@@ -80,7 +102,7 @@ export default function AddKidDialog({ open, onClose, onSave }: AddKidDialogProp
   if (!open) return null;
 
   const isNameError = submitted && !name.trim();
-  const isDateError = submitted && !birthDate.trim();
+  const isDateError = submitted && (!birthDate.trim() || !isValidDateFormat(birthDate));
   const isRoomError = submitted && !room;
 
   const inputBase =
