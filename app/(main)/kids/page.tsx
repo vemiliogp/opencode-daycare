@@ -1,7 +1,20 @@
-import { kids } from "@/app/data/kids";
+"use client";
+
+import { useState } from "react";
+import { kids as initialKids } from "@/app/data/kids";
+import type { Kid } from "@/app/data/kids";
 import KidsBrowser from "@/components/kids-browser";
+import AddKidDialog from "@/components/add-kid-dialog";
 
 export default function KidsPage() {
+  const [kids, setKids] = useState<Kid[]>(initialKids);
+  const [open, setOpen] = useState(false);
+
+  const handleSave = (kid: Kid) => {
+    setKids((prev) => [...prev, kid]);
+    setOpen(false);
+  };
+
   return (
     <div className="mx-auto w-full max-w-[880px] px-10 pb-20 pt-8.5">
       <div className="mb-5.5 flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -13,9 +26,10 @@ export default function KidsPage() {
             Niños
           </h1>
         </div>
-        <a
-          href="#"
-          className="flex items-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,#F4977E,#EE8164)] px-4.5 py-2.75 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,0.7)]"
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="cursor-pointer flex items-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,#F4977E,#EE8164)] px-4.5 py-2.75 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,0.7)]"
         >
           <svg
             width="17"
@@ -30,10 +44,16 @@ export default function KidsPage() {
             <path d="M12 5v14M5 12h14" />
           </svg>
           Agregar niño
-        </a>
+        </button>
       </div>
 
       <KidsBrowser kids={kids} />
+
+      <AddKidDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        onSave={handleSave}
+      />
     </div>
   );
 }
