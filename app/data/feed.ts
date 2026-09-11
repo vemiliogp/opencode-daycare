@@ -1,4 +1,21 @@
-export type PostKind = "achievement" | "activity" | "announcement";
+export type PostKind =
+  | "achievement"
+  | "activity"
+  | "announcement"
+  | "food"
+  | "nap"
+  | "mood"
+  | "photo";
+
+export const postKindOptions: { value: PostKind; label: string }[] = [
+  { value: "food", label: "Comida" },
+  { value: "nap", label: "Siesta" },
+  { value: "activity", label: "Actividad" },
+  { value: "achievement", label: "Logro" },
+  { value: "mood", label: "Ánimo" },
+  { value: "photo", label: "Foto" },
+  { value: "announcement", label: "Anuncio" },
+];
 
 export type Post = {
   id: string;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { useFeed } from "@/components/feed-provider";
 
 type NavItem = {
   label: string;
@@ -213,6 +214,7 @@ function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate: () => vo
 export default function AppSidebar({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  const { openPostDialog } = useFeed();
 
   const asideBase =
     "w-[248px] flex-col border-r border-border bg-surface px-4 py-6 lg:sticky lg:top-0 lg:h-screen lg:flex-none";
@@ -257,13 +259,17 @@ export default function AppSidebar({ children }: { children: ReactNode }) {
         >
           <Brand />
         </Link>
-        <a
-          href="#"
-          className="mb-4.5 flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,#F4977E,#EE8164)] p-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,0.75)]"
+        <button
+          type="button"
+          onClick={() => {
+            close();
+            openPostDialog();
+          }}
+          className="mb-4.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,#F4977E,#EE8164)] p-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,0.75)]"
         >
           <PlusMark />
           Nueva publicación
-        </a>
+        </button>
         <nav className="flex flex-1 flex-col gap-1">
           {navItems.map((item) => (
             <NavItemLink key={item.label} item={item} onNavigate={close} />
