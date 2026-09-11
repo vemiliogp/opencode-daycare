@@ -12,6 +12,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Playwright: screenshots y cualquier artefacto de Playwright van en `.playwright-mcp/` (gitignored).
 - Context7: usar para traer documentación actualizada del framework.
+- Supabase: usar para todas las operaciones con la base de datos (migraciones, queries, edge functions, logs, branches). Leer logs y advisories antes de hacer cambios; preferir desarrollo local con Supabase CLI antes de aplicar cambios remotos.
+
+## Skills instalados
+
+- **context7-mcp**: Fetch documentación actualizada de librerías/frameworks. Activar cuando el usuario pregunte sobre React, Next.js, Prisma, Supabase, etc.
+- **supabase**: Cualquier tarea con Supabase (Database, Auth, Edge Functions, RLS, Storage, Realtime, CLI, migraciones, debugging). Cargar antes de crear/alterar tablas, policies, triggers, o diagnosticar errores.
+- **supabase-postgres-best-practices**: Best practices de Postgres. Cargar ANTES de escribir o modificar cualquier cosa en la base de datos (schema, migraciones, RLS, indexes, queries, triggers).
+- **spec**: Diseñar y desarrollar specs con el método spec-driven. Usar al iniciar una feature grande, antes de escribir código.
+- **spec-impl**: Implementar un spec aprobado. Crea branch `spec-NN-slug` e implementa paso a paso.
+- **customize-opencode**: Editar configuración de opencode (`opencode.json`, `.opencode/`, agentes, skills, plugins, MCP servers).
 
 ## Comandos
 

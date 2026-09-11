@@ -1,6 +1,6 @@
 # SPEC 06 — Nueva publicación (modal dialog)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01, SPEC 02
 > **Date:** 2026-09-10
 > **Objective:** Implementar el modal del comp `crear-publicacion.dc.html` que se abre desde "Nueva publicación" (sidebar, en cualquier página main) y desde "Compartí un momento…" (feed), con chips de destinatarios multi-select excluyentes con "Toda la sala", TIPO single-select requerido y "Publicar" agregando la publicación al tope del feed en memoria.
