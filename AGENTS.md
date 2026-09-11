@@ -48,6 +48,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Workflow de specs
 
 - Features grandes: `/spec` (define y guarda `specs/NN-slug.md` en estado `Draft`; el usuario lo pasa a `Approved`) → `/spec-impl NN-slug` (crea branch `spec-NN-slug` e implementa paso a paso) → `/spec-check NN-slug` (verifica criterios de aceptación). `specs/` aún no existe.
+- **Specs de base de datos**: cualquier spec relacionado con cambios en la base de datos (schema, tablas, migraciones, RLS, triggers, indexes, funciones) debe guardarse en `specs/database/NN-slug.md` en lugar de `specs/`.
 - Skills instalados en `.agents/skills/`, versionados por `skills-lock.json`.
 - `CLAUDE.md` solo importa este archivo (`@AGENTS.md`); no duplicar contenido ahí.
 
