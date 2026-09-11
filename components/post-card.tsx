@@ -26,6 +26,30 @@ const kindVisuals: Record<PostKind, KindVisual> = {
     avatarClass: "bg-[#CCD8F4] text-[#4E72C8]",
     avatarIsIcon: true,
   },
+  food: {
+    badgeClass: "bg-[#9A7B1E] text-white",
+    badgeLabel: "COMIDA",
+    avatarClass: "bg-[#A9D9E8] text-[#1F7A93]",
+    avatarIsIcon: false,
+  },
+  nap: {
+    badgeClass: "bg-[#E7DCF6] text-[#7B5FC0]",
+    badgeLabel: "SIESTA",
+    avatarClass: "bg-[#A9D9E8] text-[#1F7A93]",
+    avatarIsIcon: false,
+  },
+  mood: {
+    badgeClass: "bg-[#F9D2DE] text-[#C56486]",
+    badgeLabel: "ÁNIMO",
+    avatarClass: "bg-[#A9D9E8] text-[#1F7A93]",
+    avatarIsIcon: false,
+  },
+  photo: {
+    badgeClass: "bg-[#FBD8CC] text-[#D9684A]",
+    badgeLabel: "FOTO",
+    avatarClass: "bg-[#A9D9E8] text-[#1F7A93]",
+    avatarIsIcon: false,
+  },
 };
 
 function MegaphoneMark() {
