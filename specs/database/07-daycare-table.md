@@ -1,6 +1,6 @@
 # SPEC 07 — Tabla daycares + migración Supabase
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** Ninguna (primera migración de BD)
 > **Date:** 2026-09-11
 > **Objective:** Crear la tabla `daycares` en Supabase con RLS, enums compartidos, seed de 5 guarderías y patrón de migraciones reproducible vía MCP.
