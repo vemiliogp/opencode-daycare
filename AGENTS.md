@@ -13,6 +13,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Playwright: screenshots y cualquier artefacto de Playwright van en `.playwright-mcp/` (gitignored).
 - Context7: usar para traer documentación actualizada del framework.
 - Supabase: usar para todas las operaciones con la base de datos (migraciones, queries, edge functions, logs, branches). Leer logs y advisories antes de hacer cambios; preferir desarrollo local con Supabase CLI antes de aplicar cambios remotos.
+- **Migraciones**: SIEMPRE usar migraciones para cualquier cambio en la base de datos (crear/alterar tablas, columnas, indexes, policies, triggers, funciones, extensions). Nunca ejecutar DDL directamente con `supabase_execute_sql`. Usar `supabase_apply_migration` para aplicar migraciones. Las migraciones deben ser descriptivas y en snake_case.
 
 ## Skills instalados
 
