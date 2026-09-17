@@ -37,6 +37,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Next.js 16.3.4 (App Router en `app/`), React 19, TypeScript strict, Tailwind CSS **v4** vía PostCSS (`@import "tailwindcss"` en `app/globals.css`; no hay `tailwind.config.*`).
 - Path alias `@/*` → raíz del repo (NO `./app/*`): importar como `@/app/...`.
+- **Supabase**: `@supabase/supabase-js` + `@supabase/ssr` para toda interacción con la base de datos y autenticación. Client helpers en `utils/supabase/server.ts` (Server Components), `utils/supabase/client.ts` (Client Components), `utils/supabase/middleware.ts` (Middleware). Variables de entorno en `.env.local`.
 - Estado actual: scaffold de create-next-app; las pantallas reales están por implementar a partir de los diseños.
 
 ## Diseños — fuente de verdad de la UI
