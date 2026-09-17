@@ -1,4 +1,6 @@
-import { kids, type Kid } from "@/app/data/kids";
+import { cookies } from "next/headers";
+import { fetchKidById } from "@/lib/db/kids";
+import { type Kid } from "@/app/data/kids";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import LinkedParentsCard from "@/components/linked-parents-card";
@@ -77,10 +79,11 @@ function DataRow({ label, value }: { label: string; value: string }) {
 export default async function KidProfilePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>,
 }) {
   const { id } = await params;
-  const kid = kids.find((k) => k.id === id);
+  const cookieStore = await cookies();
+  const kid = await fetchKidById(id, cookieStore);
   if (!kid) notFound();
 
   const colors = avatarColors[kid.avatarColor];
