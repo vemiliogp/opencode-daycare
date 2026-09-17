@@ -1,4 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, parseCookieHeader } from "@supabase/ssr";
+import { type NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,4 +26,31 @@ export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) =
       },
     },
   );
+};
+
+export const createClientForProxy = (request: NextRequest) => {
+  const response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  const supabase = createServerClient(
+    supabaseUrl!,
+    supabaseKey!,
+    {
+      cookies: {
+        getAll() {
+          return parseCookieHeader(request.headers.get("cookie") ?? "")
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    },
+  );
+
+  return { supabase, response } as const;
 };

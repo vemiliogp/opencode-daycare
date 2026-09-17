@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
+import { createClient } from "@/utils/supabase/client";
 import { useFeed } from "@/components/feed-provider";
 
 type NavItem = {
@@ -212,9 +213,55 @@ function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate: () => vo
 }
 
 export default function AppSidebar({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   const { openPostDialog } = useFeed();
+  const [fullName, setFullName] = useState<string>("");
+  const [userInitial, setUserInitial] = useState<string>("");
+  const [roleLabel, setRoleLabel] = useState<string>("");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const { data: profile, error } = await supabase
+          .from("users")
+          .select("full_name, role, daycare_id")
+          .eq("id", session.user.id)
+          .single();
+
+        if (!error && profile) {
+          const name = profile.full_name || session.user.email || "";
+          setFullName(name);
+          setUserInitial(name.charAt(0).toUpperCase());
+          const roleMap: Record<string, string> = {
+            staff: "Maestra",
+            parent: "Familia",
+            admin: "Admin",
+          };
+          let label = roleMap[profile.role] || profile.role;
+          if (profile.daycare_id) {
+            const { data: daycare } = await supabase
+              .from("daycares")
+              .select("name")
+              .eq("id", profile.daycare_id)
+              .single();
+            if (daycare) {
+              label += ` · ${daycare.name}`;
+            }
+          }
+          setRoleLabel(label);
+        }
+      }
+    });
+  }, []);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   const asideBase =
     "w-[248px] flex-col border-r border-border bg-surface px-4 py-6 lg:sticky lg:top-0 lg:h-screen lg:flex-none";
@@ -278,20 +325,21 @@ export default function AppSidebar({ children }: { children: ReactNode }) {
         <div className="mt-2.5 border-t border-border pt-3.5">
           <div className="flex items-center gap-2.75 px-2 py-1.5">
             <div className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-full bg-[#F2937A] font-title text-[16px] font-semibold text-white">
-              C
+              {userInitial}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[14px] font-extrabold text-ink">Caro Giménez</div>
-              <div className="text-[12px] text-muted">Maestra · Soles</div>
+              <div className="text-[14px] font-extrabold text-ink">{fullName}</div>
+              <div className="text-[12px] text-muted">{roleLabel}</div>
             </div>
-            <a
-              href="#"
+            <button
+              type="button"
               title="Cerrar sesión"
               aria-label="Cerrar sesión"
-              className="flex h-8 w-8 flex-none items-center justify-center rounded-[10px] bg-background text-muted-strong"
+              onClick={handleLogout}
+              className="flex h-8 w-8 flex-none cursor-pointer items-center justify-center rounded-[10px] bg-background text-muted-strong hover:bg-[#FBE3D8] hover:text-[#D9583C]"
             >
               <LogoutMark />
-            </a>
+            </button>
           </div>
         </div>
       </aside>
