@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 function SunIcon() {
   return (
@@ -22,7 +24,45 @@ function SunIcon() {
 }
 
 export default function LoginForm() {
-  const [email] = useState("caro@opendaycare.com");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const supabase = createClient();
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+      if (signInError) {
+        if (signInError.message.includes("Email not confirmed")) {
+          setError("Tu cuenta no ha sido confirmada. Revisá tu email.");
+        } else {
+          setError("Credenciales inválidas. Intentá de nuevo.");
+        }
+        setLoading(false);
+        return;
+      }
+
+      if (data.session) {
+        router.push("/");
+        router.refresh();
+      }
+    } catch {
+      setError("Ocurrió un error inesperado. Intentá de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -124,60 +164,80 @@ export default function LoginForm() {
             Ingresá para ver el día de hoy.
           </p>
 
-          {/* Email */}
-          <div
-            className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
-            style={{ color: "#94887B" }}
-          >
-            EMAIL
-          </div>
-          <input
-            type="email"
-            defaultValue={email}
-            className="mb-4.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px]"
-            style={{ borderColor: "#EADFD0", color: "#3F362E" }}
-          />
-
-          {/* Password */}
-          <div
-            className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
-            style={{ color: "#94887B" }}
-          >
-            CONTRASEÑA
-          </div>
-          <input
-            type="password"
-            placeholder="••••••••"
-            className="mb-2.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px]"
-            style={{ borderColor: "#EADFD0", color: "#3F362E" }}
-          />
-
-          {/* Forgot password link */}
-          <div className="mb-5 text-right">
-            <span
-              className="cursor-pointer text-[13.5px] font-extrabold"
+          {error && (
+            <div
+              className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm"
               style={{ color: "#C5503A" }}
             >
-              ¿Olvidaste tu contraseña?
-            </span>
-          </div>
+              {error}
+            </div>
+          )}
 
-          {/* Submit button */}
-          <Link
-            href="/"
-            className="block text-center text-[16px] font-extrabold text-white"
-            style={{
-              display: "block",
-              padding: 15,
-              borderRadius: 15,
-              background: "linear-gradient(180deg,#F4977E,#EE8164)",
-              boxShadow:
-                "0 10px 22px -8px rgba(238,129,100,.7)",
-              textAlign: "center",
-            }}
-          >
-            Iniciar sesión
-          </Link>
+          <form onSubmit={handleSubmit}>
+            {/* Email */}
+            <div
+              className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
+              style={{ color: "#94887B" }}
+            >
+              EMAIL
+            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="correo@ejemplo.com"
+              className="mb-4.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px]"
+              style={{ borderColor: "#EADFD0", color: "#3F362E" }}
+            />
+
+            {/* Password */}
+            <div
+              className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
+              style={{ color: "#94887B" }}
+            >
+              CONTRASEÑA
+            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+              className="mb-2.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px]"
+              style={{ borderColor: "#EADFD0", color: "#3F362E" }}
+            />
+
+            {/* Forgot password link */}
+            <div className="mb-5 text-right">
+              <span
+                className="cursor-pointer text-[13.5px] font-extrabold"
+                style={{ color: "#C5503A" }}
+              >
+                ¿Olvidaste tu contraseña?
+              </span>
+            </div>
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="block w-full text-center text-[16px] font-extrabold text-white"
+              style={{
+                padding: 15,
+                borderRadius: 15,
+                background: "linear-gradient(180deg,#F4977E,#EE8164)",
+                boxShadow:
+                  "0 10px 22px -8px rgba(238,129,100,.7)",
+                textAlign: "center",
+                opacity: loading ? 0.7 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+                border: "none",
+              }}
+            >
+              {loading ? "Ingresando..." : "Iniciar sesión"}
+            </button>
+          </form>
 
           {/* Activate account link */}
           <p className="mx-0 mb-0 mt-6 text-center text-[14.5px]" style={{ color: "#94887B" }}>
