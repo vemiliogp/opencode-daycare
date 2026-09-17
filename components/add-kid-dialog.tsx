@@ -1,13 +1,24 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { rooms, avatarColors, slugify, calculateAge, currentMonthYear } from "@/app/data/kids";
+import { avatarColors, slugify, calculateAge, currentMonthYear } from "@/app/data/kids";
 import type { Kid } from "@/app/data/kids";
+
+type RoomOption = { id: string; name: string };
 
 interface AddKidDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (kid: Kid) => void;
+  rooms?: RoomOption[];
+  onSave:
+    | ((kid: Kid) => void)
+    | ((
+        fullName: string,
+        birthDate: string,
+        roomId: string,
+        allergyTags: string[],
+        medicalNotes: string,
+      ) => void);
 }
 
 function applyDateMask(value: string): string {
@@ -42,18 +53,43 @@ function isValidDateFormat(date: string): boolean {
   return true;
 }
 
-export default function AddKidDialog({ open, onClose, onSave }: AddKidDialogProps) {
+function isRoomOptionArray(
+  rooms: string[] | RoomOption[] | undefined,
+): rooms is RoomOption[] {
+  return (
+    Array.isArray(rooms) &&
+    rooms.length > 0 &&
+    typeof rooms[0] === "object" &&
+    "id" in rooms[0]
+  );
+}
+
+function getRoomNames(rooms: string[] | RoomOption[] | undefined): string[] {
+  if (!rooms) return [];
+  if (isRoomOptionArray(rooms)) return rooms.map((r) => r.name);
+  return rooms;
+}
+
+export default function AddKidDialog({
+  open,
+  onClose,
+  rooms: roomsProp,
+  onSave,
+}: AddKidDialogProps) {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [room, setRoom] = useState(rooms[0]);
+  const [selectedRoom, setSelectedRoom] = useState(0);
   const [allergies, setAllergies] = useState("");
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  const roomNames = getRoomNames(roomsProp);
+  const roomOptions = isRoomOptionArray(roomsProp) ? roomsProp : [];
+
   const handleClose = useCallback(() => {
     setName("");
     setBirthDate("");
-    setRoom(rooms[0]);
+    setSelectedRoom(0);
     setAllergies("");
     setNotes("");
     setSubmitted(false);
@@ -66,26 +102,52 @@ export default function AddKidDialog({ open, onClose, onSave }: AddKidDialogProp
 
   const handleSave = () => {
     setSubmitted(true);
-    if (!name.trim() || !birthDate.trim() || !room || !isValidDateFormat(birthDate)) return;
+    if (
+      !name.trim() ||
+      !birthDate.trim() ||
+      roomNames.length === 0 ||
+      !isValidDateFormat(birthDate)
+    )
+      return;
 
-    const newKid: Kid = {
-      id: slugify(name.trim()),
-      name: name.trim(),
-      initial: name.trim().charAt(0).toUpperCase(),
-      avatarColor: avatarColors[Math.floor(Math.random() * avatarColors.length)],
-      ageYears: calculateAge(birthDate),
-      birthDate,
-      room,
-      enrollment: currentMonthYear(),
-      allergyLabel: allergies.trim().toUpperCase() || undefined,
-      allergyNote: notes.trim() || undefined,
-      parents: [],
-    };
+    if (roomOptions.length > 0) {
+      const roomId = roomOptions[selectedRoom]?.id;
+      const allergyTags = allergies
+        .trim()
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
 
-    onSave(newKid);
+      (
+        onSave as (
+          fullName: string,
+          birthDate: string,
+          roomId: string,
+          allergyTags: string[],
+          medicalNotes: string,
+        ) => void
+      )(name.trim(), birthDate, roomId, allergyTags, notes.trim());
+    } else {
+      const newKid: Kid = {
+        id: slugify(name.trim()),
+        name: name.trim(),
+        initial: name.trim().charAt(0).toUpperCase(),
+        avatarColor: avatarColors[Math.floor(Math.random() * avatarColors.length)],
+        ageYears: calculateAge(birthDate),
+        birthDate,
+        room: roomNames[selectedRoom] || "",
+        enrollment: currentMonthYear(),
+        allergyLabel: allergies.trim().toUpperCase() || undefined,
+        allergyNote: notes.trim() || undefined,
+        parents: [],
+      };
+
+      (onSave as (kid: Kid) => void)(newKid);
+    }
+
     setName("");
     setBirthDate("");
-    setRoom(rooms[0]);
+    setSelectedRoom(0);
     setAllergies("");
     setNotes("");
     setSubmitted(false);
@@ -102,8 +164,9 @@ export default function AddKidDialog({ open, onClose, onSave }: AddKidDialogProp
   if (!open) return null;
 
   const isNameError = submitted && !name.trim();
-  const isDateError = submitted && (!birthDate.trim() || !isValidDateFormat(birthDate));
-  const isRoomError = submitted && !room;
+  const isDateError =
+    submitted && (!birthDate.trim() || !isValidDateFormat(birthDate));
+  const isRoomError = submitted && roomNames.length === 0;
 
   const inputBase =
     "w-full rounded-[14px] border bg-white px-4 py-3.25 text-[15px] text-[#3F362E] placeholder:text-[#B6A99B]";
@@ -167,12 +230,12 @@ export default function AddKidDialog({ open, onClose, onSave }: AddKidDialogProp
               <label className={labelCls}>SALA</label>
               <div className="relative">
                 <select
-                  value={room}
-                  onChange={(e) => setRoom(e.target.value)}
+                  value={selectedRoom}
+                  onChange={(e) => setSelectedRoom(Number(e.target.value))}
                   className={`${inputBase} appearance-none font-bold ${isRoomError ? "border-red-500" : "border-[#EADFD0]"}`}
                 >
-                  {rooms.map((r) => (
-                    <option key={r} value={r}>
+                  {roomNames.map((r, i) => (
+                    <option key={r} value={i}>
                       {r}
                     </option>
                   ))}

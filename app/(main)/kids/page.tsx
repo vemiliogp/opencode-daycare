@@ -1,19 +1,37 @@
-"use client";
-
-import { useState } from "react";
-import { kids as initialKids } from "@/app/data/kids";
-import type { Kid } from "@/app/data/kids";
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { fetchKids, fetchRooms, createChild as createChildDb } from "@/lib/db/kids";
 import KidsBrowser from "@/components/kids-browser";
-import AddKidDialog from "@/components/add-kid-dialog";
+import AddKidDialogContainer from "@/components/add-kid-dialog-container";
 
-export default function KidsPage() {
-  const [kids, setKids] = useState<Kid[]>(initialKids);
-  const [open, setOpen] = useState(false);
+async function handleCreateChild(formData: FormData) {
+  "use server";
 
-  const handleSave = (kid: Kid) => {
-    setKids((prev) => [...prev, kid]);
-    setOpen(false);
-  };
+  const cookieStore = await cookies();
+  const fullName = formData.get("fullName") as string;
+  const birthDate = formData.get("birthDate") as string;
+  const roomId = formData.get("roomId") as string;
+  const allergyTagsRaw = formData.get("allergyTags") as string;
+  const medicalNotes = formData.get("medicalNotes") as string;
+
+  const allergyTags = allergyTagsRaw
+    ? allergyTagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
+    : [];
+
+  await createChildDb(
+    { fullName, birthDate, roomId, allergyTags, medicalNotes },
+    cookieStore,
+  );
+
+  revalidatePath("/kids");
+}
+
+export default async function KidsPage() {
+  const cookieStore = await cookies();
+  const [kids, rooms] = await Promise.all([
+    fetchKids(cookieStore),
+    fetchRooms(cookieStore),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-[880px] px-10 pb-20 pt-8.5">
@@ -26,34 +44,10 @@ export default function KidsPage() {
             Niños
           </h1>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="cursor-pointer flex items-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,#F4977E,#EE8164)] px-4.5 py-2.75 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,0.7)]"
-        >
-          <svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#fff"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Agregar niño
-        </button>
+        <AddKidDialogContainer rooms={rooms} onCreateChild={handleCreateChild} />
       </div>
 
       <KidsBrowser kids={kids} />
-
-      <AddKidDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        onSave={handleSave}
-      />
     </div>
   );
 }
