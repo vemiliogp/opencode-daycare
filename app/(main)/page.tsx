@@ -1,8 +1,20 @@
+import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
 import { feedData } from "@/app/data/feed";
 import FeedPosts from "@/components/feed-posts";
 import ShareMomentLink from "@/components/share-moment-link";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Caro";
+  const greeting = `Buenas, ${userName.split(" ")[0]}`;
+
   return (
     <div className="mx-auto w-full max-w-[760px] px-10 pb-20 pt-8.5">
       <header className="mb-6">
@@ -10,7 +22,7 @@ export default function HomePage() {
           GUARDERÍA · SALA SOLES
         </div>
         <h1 className="font-title text-[30px] font-semibold text-ink">
-          {feedData.greeting}
+          {greeting}
         </h1>
         <p className="mt-1.25 text-[14.5px] text-muted-strong">{feedData.meta}</p>
       </header>
