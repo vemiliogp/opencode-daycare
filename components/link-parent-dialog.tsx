@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { sendInvitation } from "@/lib/actions/link-parent";
 import type { Parent, ParentRole } from "@/app/data/kids";
 
 interface LinkParentDialogProps {
   open: boolean;
   kidName: string;
+  childId: string;
   onClose: () => void;
   onSend: (parent: Parent) => void;
 }
@@ -19,6 +21,7 @@ const roleOptions: { value: ParentRole; label: string }[] = [
 export default function LinkParentDialog({
   open,
   kidName,
+  childId,
   onClose,
   onSend,
 }: LinkParentDialogProps) {
@@ -26,32 +29,58 @@ export default function LinkParentDialog({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<ParentRole>("mother");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleClose = useCallback(() => {
     setName("");
     setEmail("");
     setRole("mother");
     setSubmitted(false);
+    setGeneratedCode(null);
+    setLoading(false);
+    setError(null);
     onClose();
   }, [onClose]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     setSubmitted(true);
+    setError(null);
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!trimmedName || !trimmedEmail || !emailRegex.test(trimmedEmail)) return;
 
-    onSend({
-      name: trimmedName,
-      initial: trimmedName.charAt(0).toUpperCase(),
-      role,
-      status: "pending",
+    setLoading(true);
+    const result = await sendInvitation({
+      fullName: trimmedName,
+      email: trimmedEmail,
+      relationship: role === "tutor" ? "guardian" : role,
+      childId,
     });
-    setName("");
-    setEmail("");
-    setRole("mother");
-    setSubmitted(false);
+    setLoading(false);
+
+    if (result.success && result.code) {
+      setGeneratedCode(result.code);
+      onSend({
+        name: trimmedName,
+        initial: trimmedName.charAt(0).toUpperCase(),
+        role,
+        status: "pending",
+        email: trimmedEmail,
+      });
+      setName("");
+      setEmail("");
+      setRole("mother");
+      setSubmitted(false);
+      setTimeout(() => {
+        setGeneratedCode(null);
+        onClose();
+      }, 2500);
+    } else {
+      setError(result.error || "Error al enviar la invitación");
+    }
   };
 
   useEffect(() => {
@@ -187,37 +216,54 @@ export default function LinkParentDialog({
             })}
           </div>
 
-          {/* Invitation code */}
-          <div className="mb-5 rounded-[16px] border-[1.5px] border-dashed border-[#E6D08A] bg-[#FBF1D6] p-[18px] text-center">
-            <div className="mb-2 text-[12px] font-extrabold tracking-[0.7px] text-[#A88526]">
-              CÓDIGO DE INVITACIÓN
+          {/* Invitation code - only shown after successful send */}
+          {generatedCode && (
+            <div className="mb-5 rounded-[16px] border-[1.5px] border-dashed border-[#E6D08A] bg-[#FBF1D6] p-[18px] text-center">
+              <div className="mb-2 text-[12px] font-extrabold tracking-[0.7px] text-[#A88526]">
+                CÓDIGO DE INVITACIÓN
+              </div>
+              <div className="font-title text-[34px] font-semibold tracking-[7px] text-[#8A7234]">
+                {generatedCode}
+              </div>
+              <div className="mt-1.5 text-[13px] text-[#A88526]">Vence en 7 días</div>
             </div>
-            <div className="font-title text-[34px] font-semibold tracking-[7px] text-[#8A7234]">
-              7K4P9
+          )}
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 rounded-[12px] bg-[#FBDAD6] p-3 text-[14px] text-[#C5413A]">
+              {error}
             </div>
-            <div className="mt-1.5 text-[13px] text-[#A88526]">Vence en 7 días</div>
-          </div>
+          )}
 
           {/* CTA */}
           <button
             type="button"
-            className="flex w-full cursor-pointer items-center justify-center gap-2.25 rounded-[14px] bg-[linear-gradient(180deg,#F4977E,#EE8164)] py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,0.7)]"
+            disabled={loading}
+            className={`flex w-full cursor-pointer items-center justify-center gap-2.25 rounded-[14px] bg-[linear-gradient(180deg,#F4977E,#EE8164)] py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,0.7)] ${loading ? "opacity-60" : ""}`}
             onClick={handleSend}
           >
-            <svg
-              width="19"
-              height="19"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m22 2-7 20-4-9-9-4z" />
-              <path d="M22 2 11 13" />
-            </svg>
-            Enviar invitación
+            {loading ? (
+              <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            ) : (
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m22 2-7 20-4-9-9-4z" />
+                <path d="M22 2 11 13" />
+              </svg>
+            )}
+            {loading ? "Enviando..." : "Enviar invitación"}
           </button>
         </div>
       </div>

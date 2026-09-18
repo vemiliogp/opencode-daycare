@@ -7,6 +7,7 @@ export type Parent = {
   initial: string;
   role: ParentRole;
   status: ParentStatus;
+  email?: string;
 };
 
 export type Kid = {

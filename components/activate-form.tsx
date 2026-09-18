@@ -1,6 +1,9 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import Link from "next/link";
+import { activateAccount } from "@/lib/actions/activate-account";
+import { useRouter } from "next/navigation";
 
 function SunIcon() {
   return (
@@ -20,24 +23,88 @@ function SunIcon() {
   );
 }
 
-function CheckMark() {
+function CheckMark({ checked }: { checked: boolean }) {
   return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#fff"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <span
+      className="flex h-[24px] w-[24px] flex-none items-center justify-center rounded-[8px] mt-[1px] transition-colors"
+      style={{
+        background: checked ? "#5FB97E" : "transparent",
+        border: checked ? "none" : "1.5px solid #B6A99B",
+      }}
     >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
+      {checked && (
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      )}
+    </span>
   );
 }
 
-export default function ActivateForm() {
+interface InvitationData {
+  code: string;
+  email: string;
+  fullName: string;
+  relationship: string;
+  childFullName: string;
+  childRoomName: string;
+}
+
+interface ActivateFormProps {
+  invitation: InvitationData;
+}
+
+export default function ActivateForm({ invitation }: ActivateFormProps) {
+  const router = useRouter();
+  const [password, setPassword] = useState("");
+  const [consent, setConsent] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+
+    if (!consent) {
+      setError("Debes aceptar los términos para continuar");
+      return;
+    }
+
+    setLoading(true);
+    const result = await activateAccount({
+      code: invitation.code,
+      email: invitation.email,
+      fullName: invitation.fullName,
+      password,
+      childFullName: invitation.childFullName,
+      childRoomName: invitation.childRoomName,
+      relationship: invitation.relationship,
+    });
+    setLoading(false);
+
+    if (result.success) {
+      router.push("/");
+    } else {
+      setError(result.error || "Error al crear la cuenta");
+    }
+  }, [password, consent, invitation, router]);
+
+  const childInitial = invitation.childFullName.charAt(0).toUpperCase();
+
   return (
     <div
       className="flex min-h-screen items-center justify-center px-10 py-10"
@@ -83,7 +150,7 @@ export default function ActivateForm() {
               fontFamily: "var(--font-fredoka)",
             }}
           >
-            M
+            {childInitial}
           </div>
           <div>
             <div className="text-[13px]" style={{ color: "#94887B" }}>
@@ -96,98 +163,113 @@ export default function ActivateForm() {
                 color: "#3F362E",
               }}
             >
-              Mateo · Sala Soles
+              {invitation.childFullName}
+              {invitation.childRoomName && ` · Sala ${invitation.childRoomName}`}
             </div>
           </div>
         </div>
 
-        {/* Invitation code */}
-        <div
-          className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
-          style={{ color: "#94887B" }}
-        >
-          CÓDIGO DE INVITACIÓN
-        </div>
-        <input
-          defaultValue="7K4P9"
-          className="mb-[18px] w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[18px] font-extrabold tracking-[3px]"
-          style={{
-            borderColor: "#EADFD0",
-            color: "#3F362E",
-            fontFamily: "var(--font-fredoka)",
-          }}
-        />
-
-        {/* Email */}
-        <div
-          className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
-          style={{ color: "#94887B" }}
-        >
-          EMAIL
-        </div>
-        <input
-          type="email"
-          defaultValue="lucia.fernandez@gmail.com"
-          className="mb-[18px] w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px]"
-          style={{
-            borderColor: "#EADFD0",
-            color: "#3F362E",
-          }}
-        />
-
-        {/* Create password */}
-        <div
-          className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
-          style={{ color: "#94887B" }}
-        >
-          CREAR CONTRASEÑA
-        </div>
-        <input
-          type="password"
-          defaultValue="contraseña"
-          className="mb-6 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px]"
-          style={{
-            borderColor: "#F2A78E",
-            color: "#3F362E",
-          }}
-        />
-
-        {/* Consent checkbox */}
-        <label
-          className="mb-6 flex items-start gap-[12px] rounded-[14px] p-[14px_16px]"
-          style={{
-            background: "#FBF1D6",
-            cursor: "pointer",
-          }}
-        >
-          <span
-            className="flex h-[24px] w-[24px] flex-none items-center justify-center rounded-[8px] mt-[1px]"
-            style={{ background: "#5FB97E" }}
+        {/* Error message */}
+        {error && (
+          <div
+            className="mb-4 rounded-[12px] bg-[#FBDAD6] p-3 text-[14px] text-[#C5413A]"
           >
-            <CheckMark />
-          </span>
-          <span
-            className="text-[14px] leading-[1.45]"
-            style={{ color: "#8A7234" }}
-          >
-            Autorizo a la guardería a tomar y compartir fotos de mi hijo
-            dentro de la app.
-          </span>
-        </label>
+            {error}
+          </div>
+        )}
 
-        {/* Activate button */}
-        <Link
-          href="/"
-          className="block text-center text-[16px] font-extrabold text-white"
-          style={{
-            padding: 15,
-            borderRadius: 15,
-            background: "linear-gradient(180deg,#F4977E,#EE8164)",
-            boxShadow: "0 10px 22px -8px rgba(238,129,100,.7)",
-          }}
-        >
-          Activar mi cuenta
-        </Link>
+        <form onSubmit={handleSubmit}>
+          {/* Invitation code */}
+          <div
+            className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
+            style={{ color: "#94887B" }}
+          >
+            CÓDIGO DE INVITACIÓN
+          </div>
+          <input
+            type="text"
+            value={invitation.code}
+            readOnly
+            className="mb-[18px] w-full rounded-[14px] border-[1.5px] bg-[#F6F2ED] px-4 py-3.5 text-[18px] font-extrabold tracking-[3px]"
+            style={{
+              borderColor: "#EADFD0",
+              color: "#3F362E",
+              fontFamily: "var(--font-fredoka)",
+            }}
+          />
+
+          {/* Email */}
+          <div
+            className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
+            style={{ color: "#94887B" }}
+          >
+            EMAIL
+          </div>
+          <input
+            type="email"
+            value={invitation.email}
+            readOnly
+            className="mb-[18px] w-full rounded-[14px] border-[1.5px] bg-[#F6F2ED] px-4 py-3.5 text-[15px]"
+            style={{
+              borderColor: "#EADFD0",
+              color: "#3F362E",
+            }}
+          />
+
+          {/* Create password */}
+          <div
+            className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
+            style={{ color: "#94887B" }}
+          >
+            CREAR CONTRASEÑA
+          </div>
+          <input
+            type="password"
+            placeholder="Mínimo 8 caracteres"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mb-6 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px] placeholder:text-[#B6A99B]"
+            style={{
+              borderColor: "#EADFD0",
+              color: "#3F362E",
+            }}
+          />
+
+          {/* Consent checkbox */}
+          <label
+            className="mb-6 flex cursor-pointer items-start gap-[12px] rounded-[14px] p-[14px_16px]"
+            style={{
+              background: "#FBF1D6",
+            }}
+            onClick={() => setConsent(!consent)}
+          >
+            <CheckMark checked={consent} />
+            <span
+              className="text-[14px] leading-[1.45]"
+              style={{ color: "#8A7234" }}
+            >
+              Autorizo a la guardería a tomar y compartir fotos de mi hijo
+              dentro de la app.
+            </span>
+          </label>
+
+          {/* Activate button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`block w-full text-center text-[16px] font-extrabold text-white ${loading ? "opacity-60" : ""}`}
+            style={{
+              padding: 15,
+              borderRadius: 15,
+              background: "linear-gradient(180deg,#F4977E,#EE8164)",
+              boxShadow: "0 10px 22px -8px rgba(238,129,100,.7)",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            {loading ? "Creando cuenta..." : "Activar mi cuenta"}
+          </button>
+        </form>
 
         {/* Login link */}
         <p

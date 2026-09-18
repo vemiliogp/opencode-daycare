@@ -49,7 +49,68 @@ function getAvatarColor(id: string): AvatarColor {
   return avatarColors[Math.abs(hash) % avatarColors.length];
 }
 
-function childToKid(row: ChildRow): Kid {
+async function fetchParentsForChild(
+  childId: string,
+  supabase: ReturnType<typeof createClient>
+): Promise<Parent[]> {
+  const parents: Parent[] = [];
+
+  const { data: invitations } = await supabase
+    .from("invitations")
+    .select("full_name, email, relationship, status")
+    .eq("child_id", childId)
+    .eq("status", "pending");
+
+  if (invitations) {
+    for (const inv of invitations) {
+      parents.push({
+        name: inv.full_name,
+        initial: inv.full_name.charAt(0).toUpperCase(),
+        role: inv.relationship === "guardian" ? "tutor" : inv.relationship,
+        status: "pending",
+        email: inv.email,
+      });
+    }
+  }
+
+  const { data: links } = await supabase
+    .from("parent_children")
+    .select("parent_id, relationship")
+    .eq("child_id", childId);
+
+  if (links && links.length > 0) {
+    const parentIds = links.map((l) => l.parent_id);
+    const { data: users } = await supabase
+      .from("users")
+      .select("id, full_name, status")
+      .in("id", parentIds);
+
+    const userMap = new Map<string, { full_name: string; status: string }>();
+    if (users) {
+      for (const u of users) {
+        if (u.full_name) {
+          userMap.set(u.id, { full_name: u.full_name, status: u.status || "pending" });
+        }
+      }
+    }
+
+    for (const link of links) {
+      const user = userMap.get(link.parent_id);
+      if (user) {
+        parents.push({
+          name: user.full_name,
+          initial: user.full_name.charAt(0).toUpperCase(),
+          role: link.relationship === "guardian" ? "tutor" : link.relationship,
+          status: user.status === "active" ? "active" : "pending",
+        });
+      }
+    }
+  }
+
+  return parents;
+}
+
+function childToKid(row: ChildRow, parents: Parent[] = []): Kid {
   return {
     id: row.id,
     name: row.full_name,
@@ -61,7 +122,7 @@ function childToKid(row: ChildRow): Kid {
     enrollment: formatMonthYear(row.enrolled_at),
     allergyLabel: row.allergy_tags && row.allergy_tags.length > 0 ? row.allergy_tags[0].toUpperCase() : undefined,
     allergyNote: row.medical_notes || undefined,
-    parents: [] as Parent[],
+    parents,
   };
 }
 
@@ -79,7 +140,12 @@ export async function fetchKids(cookieStore: CookieStore): Promise<Kid[]> {
     return [];
   }
 
-  return (data as ChildRow[] || []).map(childToKid);
+  const kids: Kid[] = [];
+  for (const row of data as ChildRow[] || []) {
+    const parents = await fetchParentsForChild(row.id, supabase);
+    kids.push(childToKid(row, parents));
+  }
+  return kids;
 }
 
 export async function fetchKidById(
@@ -98,7 +164,8 @@ export async function fetchKidById(
     return null;
   }
 
-  return childToKid(data as ChildRow);
+  const parents = await fetchParentsForChild(data.id, supabase);
+  return childToKid(data as ChildRow, parents);
 }
 
 export async function fetchRooms(cookieStore: CookieStore): Promise<{ id: string; name: string }[]> {
