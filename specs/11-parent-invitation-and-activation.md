@@ -1,6 +1,6 @@
 # SPEC 11 — Invitación de padre y activación de cuenta
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 03, SPEC 08, SPEC 09, SPEC 10
 > **Date:** 2026-09-17
 > **Objective:** Implementar el flujo completo de vinculación de padre: generar código de invitación al enviar el formulario, enviar email con Resend REST API desde Server Actions en Next.js, y permitir que el padre active su cuenta con el código pre-cargado, creando su cuenta en Supabase Auth + public.users + parent_children.
@@ -175,24 +175,24 @@ interface InvitationData {
 
 ## Acceptance criteria
 
-- [ ] Migración `006_create_invitations_and_parent_children.sql` aplicada correctamente.
-- [ ] Tabla `invitations` existe con todas las columnas: `id`, `child_id`, `invited_by`, `full_name`, `email`, `relationship`, `code`, `status`, `expires_at`, `accepted_at`, `created_at`.
-- [ ] Tabla `parent_children` existe con columnas: `id`, `parent_id`, `child_id`, `relationship`, `created_at` + unique constraint `(parent_id, child_id)`.
-- [ ] Índices creados: `idx_invitations_code`, `idx_invitations_child_status`, `idx_parent_children_child`.
-- [ ] RLS habilitada en ambas tablas con políticas SELECT/INSERT/UPDATE.
-- [ ] Email enviado correctamente con Resend: contiene código de invitación y link de activación.
-- [ ] Server Action `sendInvitation` inserta invitación en BD con código aleatorio de 5 caracteres y envía email.
-- [ ] `LinkParentDialog` muestra el código generado al enviar (reemplazando el mock estático).
-- [ ] Modal se cierra tras envío exitoso y padre aparece como PENDIENTE.
-- [ ] `LinkedParentsCard` muestra botón "Reenviar invitación" solo para padres pending.
-- [ ] Reenvío envía nuevamente el email con el mismo código.
-- [ ] `/activar-cuenta?code=XXXXX` carga datos de invitación y pre-llena email y código.
-- [ ] Formulario de activación requiere contraseña (mínimo 8 caracteres) y aceptar términos.
-- [ ] Activación exitosa crea cuenta en Supabase Auth, fila en `public.users`, y vínculo en `parent_children`.
-- [ ] Tras activación, el usuario es redirigido a `/`.
-- [ ] Login con las credenciales creadas funciona correctamente.
-- [ ] `RESEND_API_KEY` documentada en `.env.example`.
-- [ ] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
+- [x] Migración `006_create_invitations_and_parent_children.sql` aplicada correctamente.
+- [x] Tabla `invitations` existe con todas las columnas: `id`, `child_id`, `invited_by`, `full_name`, `email`, `relationship`, `code`, `status`, `expires_at`, `accepted_at`, `created_at`.
+- [x] Tabla `parent_children` existe con columnas: `id`, `parent_id`, `child_id`, `relationship`, `created_at` + unique constraint `(parent_id, child_id)`.
+- [x] Índices creados: `idx_invitations_code`, `idx_invitations_child_status`, `idx_parent_children_child`.
+- [x] RLS habilitada en ambas tablas con políticas SELECT/INSERT/UPDATE.
+- [x] Email enviado correctamente con Resend: contiene código de invitación y link de activación.
+- [x] Server Action `sendInvitation` inserta invitación en BD con código aleatorio de 5 caracteres y envía email.
+- [x] `LinkParentDialog` muestra el código generado al enviar (reemplazando el mock estático).
+- [x] Modal se cierra tras envío exitoso y padre aparece como PENDIENTE.
+- [x] `LinkedParentsCard` muestra botón "Reenviar invitación" solo para padres pending.
+- [x] Reenvío envía nuevamente el email con el mismo código.
+- [x] `/activar-cuenta?code=XXXXX` carga datos de invitación y pre-llena email y código.
+- [x] Formulario de activación requiere contraseña (mínimo 8 caracteres) y aceptar términos.
+- [x] Activación exitosa crea cuenta en Supabase Auth, fila en `public.users`, y vínculo en `parent_children`.
+- [x] Tras activación, el usuario es redirigido a `/`.
+- [x] Login con las credenciales creadas funciona correctamente.
+- [x] `RESEND_API_KEY` documentada en `.env.template`.
+- [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
 
 ## Decisions
 
