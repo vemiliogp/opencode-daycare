@@ -1,0 +1,39 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+context: |
+  OpenDayCare: web app for managing a daycare (guardería), UI in Spanish.
+  Parents view a feed of their children's daily activity (meals, naps, notes) and receive notifications.
+  Staff/daycare manage children, log daily events and communicate with families.
+  Multi-tenant: data is isolated per family and per daycare.
+  Tech stack: Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS v4, Supabase (Postgres, Auth, RLS, Storage).
+  Conventions: code (names, functions, variables) in English, UI text in Spanish; DB changes only via Supabase migrations.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
