@@ -212,6 +212,17 @@ in your repo's language) and make the final commit before merging this branch.
 
 ---
 
+## Integration with db-migrator
+
+When an implementation step requires applying a database migration (via `supabase_apply_migration`), **do not apply it directly**. Instead, invoke the `db-migrator` agent by calling `/migrate`.
+
+- The `db-migrator` agent (defined in `.opencode/agents/db-migrator.md`) specializes in comparing local migration files with the database state, applying pending migrations in order, and verifying the result.
+- After `db-migrator` confirms the migration is applied, continue with the next step.
+- If `db-migrator` reports an error, **stop** and do not continue past that step. Report the error to the user.
+- Migration files (`supabase/migrations/NNN_name.sql`) are created by the implementation steps — but applying them is delegated to `db-migrator`.
+
+---
+
 ## Summary of expected behavior
 
 ```

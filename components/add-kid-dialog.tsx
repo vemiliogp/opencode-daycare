@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { avatarColors, slugify, calculateAge, currentMonthYear } from "@/app/data/kids";
 import type { Kid } from "@/app/data/kids";
 
@@ -10,15 +11,14 @@ interface AddKidDialogProps {
   open: boolean;
   onClose: () => void;
   rooms?: RoomOption[];
-  onSave:
-    | ((kid: Kid) => void)
-    | ((
-        fullName: string,
-        birthDate: string,
-        roomId: string,
-        allergyTags: string[],
-        medicalNotes: string,
-      ) => void);
+  onSaveKid?: (kid: Kid) => void;
+  onSaveKidDetails?: (
+    fullName: string,
+    birthDate: string,
+    roomId: string,
+    allergyTags: string[],
+    medicalNotes: string,
+  ) => void;
 }
 
 function applyDateMask(value: string): string {
@@ -74,7 +74,8 @@ export default function AddKidDialog({
   open,
   onClose,
   rooms: roomsProp,
-  onSave,
+  onSaveKid,
+  onSaveKidDetails,
 }: AddKidDialogProps) {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -82,6 +83,9 @@ export default function AddKidDialog({
   const [allergies, setAllergies] = useState("");
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
+
+  const dialogContentRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const roomNames = getRoomNames(roomsProp);
   const roomOptions = isRoomOptionArray(roomsProp) ? roomsProp : [];
@@ -93,6 +97,8 @@ export default function AddKidDialog({
     setAllergies("");
     setNotes("");
     setSubmitted(false);
+    // Restore focus to the element that was focused before the dialog opened
+    previousFocusRef.current?.focus();
     onClose();
   }, [onClose]);
 
@@ -112,22 +118,18 @@ export default function AddKidDialog({
 
     if (roomOptions.length > 0) {
       const roomId = roomOptions[selectedRoom]?.id;
+      if (!roomId || !onSaveKidDetails) return;
+
       const allergyTags = allergies
         .trim()
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean);
 
-      (
-        onSave as (
-          fullName: string,
-          birthDate: string,
-          roomId: string,
-          allergyTags: string[],
-          medicalNotes: string,
-        ) => void
-      )(name.trim(), birthDate, roomId, allergyTags, notes.trim());
+      onSaveKidDetails(name.trim(), birthDate, roomId, allergyTags, notes.trim());
     } else {
+      if (!onSaveKid) return;
+
       const newKid: Kid = {
         id: slugify(name.trim()),
         name: name.trim(),
@@ -142,7 +144,7 @@ export default function AddKidDialog({
         parents: [],
       };
 
-      (onSave as (kid: Kid) => void)(newKid);
+      onSaveKid(newKid);
     }
 
     setName("");
@@ -153,13 +155,30 @@ export default function AddKidDialog({
     setSubmitted(false);
   };
 
+  // Capture the previously focused element when the dialog opens
   useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+    }
+  }, [open]);
+
+  // Only register the Escape key listener while the dialog is open
+  useEffect(() => {
+    if (!open) return;
+
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && open) handleClose();
+      if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [open, handleClose]);
+
+  // Focus the dialog content when it opens
+  useEffect(() => {
+    if (open) {
+      dialogContentRef.current?.focus();
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -173,16 +192,18 @@ export default function AddKidDialog({
   const labelCls =
     "mb-2 block text-[12px] font-extrabold tracking-[0.7px] text-[#94887B]";
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Agregar niño"
+      aria-labelledby="add-kid-dialog-title"
     >
       <div
-        className="w-full max-w-[520px] rounded-[24px] border border-[#ECE0D0] bg-[#FBF4EC] shadow-[0_20px_50px_-24px_rgba(63,54,46,0.35)]"
+        ref={dialogContentRef}
+        tabIndex={-1}
+        className="w-full max-w-[520px] rounded-[24px] border border-[#ECE0D0] bg-[#FBF4EC] shadow-[0_20px_50px_-24px_rgba(63,54,46,0.35)] outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-[#ECE0D0] px-6.5 py-5">
@@ -193,7 +214,10 @@ export default function AddKidDialog({
           >
             Cancelar
           </button>
-          <span className="font-title text-[18px] font-semibold text-[#3F362E]">
+          <span
+            id="add-kid-dialog-title"
+            className="font-title text-[18px] font-semibold text-[#3F362E]"
+          >
             Agregar niño
           </span>
           <button
@@ -206,33 +230,61 @@ export default function AddKidDialog({
         </div>
 
         <div className="px-6.5 py-6">
-          <label className={labelCls}>NOMBRE COMPLETO</label>
+          <label htmlFor="kid-name" className={labelCls}>
+            NOMBRE COMPLETO
+          </label>
           <input
+            id="kid-name"
             type="text"
             placeholder="Ej. Martina López"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className={`${inputBase} ${isNameError ? "border-red-500" : "border-[#EADFD0]"}`}
+            aria-invalid={isNameError}
+            aria-describedby={isNameError ? "kid-name-error" : undefined}
           />
+          {isNameError && (
+            <p id="kid-name-error" className="mt-1 text-sm text-red-500" role="alert">
+              El nombre es obligatorio
+            </p>
+          )}
 
           <div className="mb-4.5 mt-4.5 flex gap-3.5">
             <div className="flex-1">
-              <label className={labelCls}>FECHA DE NACIMIENTO</label>
+              <label htmlFor="kid-birthdate" className={labelCls}>
+                FECHA DE NACIMIENTO
+              </label>
               <input
+                id="kid-birthdate"
                 type="text"
                 placeholder="dd/mm/aaaa"
                 value={birthDate}
                 onChange={handleDateChange}
                 className={`${inputBase} ${isDateError ? "border-red-500" : "border-[#EADFD0]"}`}
+                aria-invalid={isDateError}
+                aria-describedby={isDateError ? "kid-birthdate-error" : undefined}
               />
+              {isDateError && (
+                <p
+                  id="kid-birthdate-error"
+                  className="mt-1 text-sm text-red-500"
+                  role="alert"
+                >
+                  Ingresa una fecha válida (dd/mm/aaaa)
+                </p>
+              )}
             </div>
             <div className="flex-1">
-              <label className={labelCls}>SALA</label>
+              <label htmlFor="kid-room" className={labelCls}>
+                SALA
+              </label>
               <div className="relative">
                 <select
+                  id="kid-room"
                   value={selectedRoom}
                   onChange={(e) => setSelectedRoom(Number(e.target.value))}
                   className={`${inputBase} appearance-none font-bold ${isRoomError ? "border-red-500" : "border-[#EADFD0]"}`}
+                  aria-invalid={isRoomError}
                 >
                   {roomNames.map((r, i) => (
                     <option key={r} value={i}>
@@ -258,8 +310,11 @@ export default function AddKidDialog({
             </div>
           </div>
 
-          <label className={labelCls}>ALERGIAS (ETIQUETAS)</label>
+          <label htmlFor="kid-allergies" className={labelCls}>
+            ALERGIAS (ETIQUETAS)
+          </label>
           <input
+            id="kid-allergies"
             type="text"
             placeholder="Ej. Maní, Lactosa"
             value={allergies}
@@ -267,8 +322,11 @@ export default function AddKidDialog({
             className={`${inputBase} border-[#EADFD0] mb-4.5`}
           />
 
-          <label className={labelCls}>NOTAS MÉDICAS</label>
+          <label htmlFor="kid-notes" className={labelCls}>
+            NOTAS MÉDICAS
+          </label>
           <textarea
+            id="kid-notes"
             placeholder="Indicaciones, medicación, contactos…"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -278,6 +336,7 @@ export default function AddKidDialog({
           />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

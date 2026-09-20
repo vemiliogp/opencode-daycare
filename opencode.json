@@ -1,9 +1,14 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "formatter": true,
   "command": {
     "spec": {
       "description": "Crea especificaciones de pantallas y funcionalidades",
       "template": "Carga y sigue la skill spec en .agents/skills/spec/SKILL.md.\n\nFeature: $ARGUMENTS"
+    },
+    "migrate": {
+      "description": "Verificar y aplicar migraciones pendientes de Supabase",
+      "template": "Carga el agente db-migrator en .opencode/agents/db-migrator.md.\n\nAccion: verificar y aplicar migraciones pendientes de Supabase. Comparar archivos locales con migraciones aplicadas en BD, aplicar las que falten, y reportar estado final."
     }
   },
   "lsp": true,
