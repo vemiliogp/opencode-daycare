@@ -57,7 +57,7 @@ export default function AddKidDialogContainer({
         open={open}
         onClose={() => setOpen(false)}
         rooms={rooms}
-        onSave={handleSave}
+        onSaveKidDetails={handleSave}
       />
     </>
   );

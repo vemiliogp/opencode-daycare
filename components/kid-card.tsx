@@ -21,46 +21,54 @@ function ChevronRight() {
       strokeWidth="2.2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       <path d="m9 18 6-6-6-6" />
     </svg>
   );
 }
 
-function parentSubtitle(count: number) {
+function getParentSubtitle(count: number) {
   if (count === 0) return "sin padres vinculados";
   if (count === 1) return "1 padre vinculado";
   return `${count} padres vinculados`;
 }
 
-export default function KidCard({ kid }: { kid: Kid }) {
-  const colors = avatarColors[kid.avatarColor];
-
-  let rightElement: React.ReactNode;
-  if (kid.allergyLabel) {
-    rightElement = (
+function getRightElement(allergyLabel: string | undefined, parentsCount: number) {
+  if (allergyLabel) {
+    return (
       <span className="rounded-full bg-[#FBD8CC] px-2.25 py-1.25 text-[11px] font-extrabold text-[#D9684A]">
-        {kid.allergyLabel}
+        {allergyLabel}
       </span>
     );
-  } else if (kid.parents.length === 0) {
-    rightElement = (
+  }
+  if (parentsCount === 0) {
+    return (
       <span className="rounded-full bg-[#F9D2DE] px-2.25 py-1.25 text-[11px] font-extrabold text-[#C56486]">
         VINCULAR
       </span>
     );
-  } else {
-    rightElement = <ChevronRight />;
   }
+  return <ChevronRight />;
+}
+
+interface KidCardProps {
+  kid: Kid;
+}
+
+export default function KidCard({ kid }: KidCardProps) {
+  const colors = avatarColors[kid.avatarColor];
 
   return (
     <Link
       href={`/kids/${kid.id}`}
       className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-border bg-surface p-4 shadow-[0_4px_14px_-12px_rgba(120,90,60,0.5)] transition-[.15s] hover:border-[#F2A78E] hover:-translate-y-0.5"
+      aria-label={`${kid.name}, ${kid.ageYears} años`}
     >
       <div
         className="flex h-12 w-12 flex-none items-center justify-center rounded-full font-title text-[19px] font-semibold"
         style={{ backgroundColor: colors.bg, color: colors.text }}
+        aria-hidden="true"
       >
         {kid.initial}
       </div>
@@ -69,10 +77,10 @@ export default function KidCard({ kid }: { kid: Kid }) {
           {kid.name}
         </div>
         <div className="text-[13px] text-muted">
-          {kid.ageYears} años · {parentSubtitle(kid.parents.length)}
+          {kid.ageYears} años · {getParentSubtitle(kid.parents.length)}
         </div>
       </div>
-      {rightElement}
+      {getRightElement(kid.allergyLabel, kid.parents.length)}
     </Link>
   );
 }

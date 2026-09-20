@@ -100,22 +100,22 @@ photo:        { badgeClass: "bg-[#FBD8CC] text-[#D9684A]", badgeLabel: "FOTO" }
 
 ## Acceptance criteria
 
-- [ ] `npm run dev` abre `/` sin errores en consola.
-- [ ] Clic en "Nueva publicación" en el sidebar abre el modal centrado con overlay backdrop, tanto desde `/` como desde `/kids`.
-- [ ] Clic en "Compartí un momento…" en el feed abre el mismo modal.
-- [ ] El modal reproduce 1:1 el comp `crear-publicacion.dc.html` en desktop (≥1024px): card 580px `#FBF4EC` radius 24, header Cancelar/título/Publicar, labels 12px/800/tracking 0.7px `#94887B`, chips radius 999 con avatar 26px, pills radius 999, textarea radius 14 borde `#EADFD0`, tiles FOTOS 96×96 — verificado lado a lado.
-- [ ] PARA lista los 8 niños de sala Soles (Mateo, Sofía, Benjamín, Valentina, Tomás, Emma, Lucas, Olivia) con el color de avatar de cada uno.
-- [ ] Al abrir el modal ningún chip PARA ni pill TIPO está seleccionado.
-- [ ] Clic en un niño lo activa (borde/fondo `#3F362E`, texto blanco); clic en un segundo niño mantiene ambos activos (multi-select).
-- [ ] Con niños seleccionados, clic en "Toda la sala" los deselecciona a todos y activa solo "Toda la sala".
-- [ ] Con "Toda la sala" activa, clic en un niño deselecciona "Toda la sala" y activa ese niño.
-- [ ] TIPO: clic en una pill la activa con su color pleno del comp (ej. Actividad `#2E89A6` texto blanco) y desactiva la anterior; las inactivas se ven neutras.
-- [ ] Publicar sin destinatario, sin tipo o con descripción vacía muestra borde rojo en la sección pendiente y el modal no cierra.
-- [ ] Publicar con todo completo cierra el modal y el post aparece al tope del feed con badge del tipo elegido, "publicado por vos", hora actual y 0 corazones / 0 comentarios.
-- [ ] El post para 1 niño muestra "Para: familia de {nombre}"; para 2 niños "Para: familias de {n1} y {n2}"; para toda la sala "Para: toda la sala" con avatar megáfono.
-- [ ] Clic en "Cancelar", en el backdrop o Escape cierra el modal sin cambios; reabrirlo muestra el formulario reseteado (sin chips, sin tipo, descripción vacía).
-- [ ] En viewport <1024px, "Nueva publicación" en el drawer cierra el drawer y abre el modal.
-- [ ] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
+- [x] `npm run dev` abre `/` sin errores en consola.
+- [x] Clic en "Nueva publicación" en el sidebar abre el modal centrado con overlay backdrop, tanto desde `/` como desde `/kids`.
+- [x] Clic en "Compartí un momento…" en el feed abre el mismo modal.
+- [x] El modal reproduce 1:1 el comp `crear-publicacion.dc.html` en desktop (≥1024px): card 580px `#FBF4EC` radius 24, header Cancelar/título/Publicar, labels 12px/800/tracking 0.7px `#94887B`, chips radius 999 con avatar 26px, pills radius 999, textarea radius 14 borde `#EADFD0`, tiles FOTOS 96×96 — verificado lado a lado.
+- [x] PARA lista los 8 niños de sala Soles (Mateo, Sofía, Benjamín, Valentina, Tomás, Emma, Lucas, Olivia) con el color de avatar de cada uno.
+- [x] Al abrir el modal ningún chip PARA ni pill TIPO está seleccionado.
+- [x] Clic en un niño lo activa (borde/fondo `#3F362E`, texto blanco); clic en un segundo niño mantiene ambos activos (multi-select).
+- [x] Con niños seleccionados, clic en "Toda la sala" los deselecciona a todos y activa solo "Toda la sala".
+- [x] Con "Toda la sala" activa, clic en un niño deselecciona "Toda la sala" y activa ese niño.
+- [x] TIPO: clic en una pill la activa con su color pleno del comp (ej. Actividad `#2E89A6` texto blanco) y desactiva la anterior; las inactivas se ven neutras.
+- [x] Publicar sin destinatario, sin tipo o con descripción vacía muestra borde rojo en la sección pendiente y el modal no cierra.
+- [x] Publicar con todo completo cierra el modal y el post aparece al tope del feed con badge del tipo elegido, "publicado por vos", hora actual y 0 corazones / 0 comentarios.
+- [x] El post para 1 niño muestra "Para: familia de {nombre}"; para 2 niños "Para: familias de {n1} y {n2}"; para toda la sala "Para: toda la sala" con avatar megáfono.
+- [x] Clic en "Cancelar", en el backdrop o Escape cierra el modal sin cambios; reabrirlo muestra el formulario reseteado (sin chips, sin tipo, descripción vacía).
+- [x] En viewport <1024px, "Nueva publicación" en el drawer cierra el drawer y abre el modal.
+- [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
 
 ## Decisions
 

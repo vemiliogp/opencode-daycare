@@ -61,6 +61,42 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Se invoca vía comando `/spec-check NN-slug` (o `/spec-check 01`, `/spec-check feed-home`, etc.). Si no se pasa argumento, lista los specs disponibles y pregunta cuál verificar.
 - Todos los artefactos de Playwright van en `.playwright-mcp/` (gitignored).
 
+## Agente db-migrator
+
+- Definido en `.opencode/agents/db-migrator.md`. Verifica y aplica migraciones pendientes de Supabase.
+- Compara archivos locales en `supabase/migrations/` con migraciones aplicadas en la BD.
+- Aplica migraciones pendientes en orden secuencial vía `supabase_apply_migration`.
+- Detecta y reporta drift (migraciones en BD sin archivo local o viceversa).
+- Invocado vía `/migrate` o invocado automáticamente por `spec-impl` cuando un paso requiere aplicar una migración.
+- NUNCA usa `supabase_execute_sql` para DDL — siempre `supabase_apply_migration`.
+- Detiene la ejecución al primer error y reporta claramente.
+
+## Agente react-best-practices
+
+- Definido en `.opencode/agents/react-best-practices.md`. Aplica mejores prácticas de React a archivos indicados usando Context7 para verificar documentación oficial actualizada.
+- Revisa hooks, state management, re-renders, efectos, Server/Client boundaries, performance, composición de componentes, TypeScript y accesibilidad.
+- Aplica mejoras directamente a los archivos indicados preservando funcionalidad. Corre `npm run lint` y `npx tsc --noEmit` después de los cambios.
+- Se invoca vía comando `/react-review app/components/Header.tsx` (o múltiples archivos separados por espacios). Si no se pasan archivos, pregunta cuáles revisar.
+- Siempre cita la documentación de React que respalda cada cambio.
+
+## Agente accessibility-checker
+
+- Definido en `.opencode/agents/accessibility-checker.md`. Audita y repara problemas de accesibilidad WCAG 2.2 AA en componentes React (`.tsx`) y HTML estático (`.dc.html`).
+- Ejecuta auditorías automatizadas con axe-core vía Playwright, pruebas de navegación por teclado, y revisión manual de código semantic HTML, ARIA, labels, focus management.
+- Aplica fixes directamente en los archivos preservando funcionalidad y diseño visual. Corre `npm run lint`, `npx tsc --noEmit` y re-ejecuta axe-core post-fix.
+- Se invoca vía comando `/a11y-check app/components/Header.tsx` (o múltiples archivos separados por espacios). Si no se pasan archivos, pregunta cuáles revisar.
+- Todos los artefactos de Playwright van en `.playwright-mcp/` (gitignored).
+
+## Agente db-security-auditor
+
+- Definido en `.opencode/agents/db-security-auditor.md`. Audita la seguridad de la base de datos Supabase, con foco en políticas RLS, roles de acceso y aislamiento de datos entre familias (niños/padres).
+- Previene fugas de datos entre tenants: verifica que un padre solo pueda ver a sus propios hijos, no los de otras familias.
+- Revisa cada tabla: RLS habilitado, políticas por operación (SELECT/INSERT/UPDATE/DELETE), predicados correctos (`TO authenticated` + ownership check, no solo `TO authenticated`), indexes en columnas de políticas.
+- Audita funciones `SECURITY DEFINER` (bypassean RLS), vistas (bypassean RLS por defecto), uso de `user_metadata` vs `app_metadata` en autorización, y exposición de claves `service_role`.
+- Ejecuta queries de verificación para probar que el aislamiento funciona entre familias y daycares.
+- Solo audita y reporta — NO modifica la base de datos ni aplica migraciones.
+- Se invoca vía comando `/db-security-audit` (o con tablas/archivos específicos). Si no se pasa argumento, audita todo el proyecto.
+
 ## Spec Driven Development
 
 - /spec usaremos esta habilidad para crear las implementaciones.

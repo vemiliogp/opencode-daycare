@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback, useId } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
@@ -16,6 +16,7 @@ function SunIcon() {
       strokeWidth="2.2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
@@ -25,53 +26,58 @@ function SunIcon() {
 
 export default function LoginForm() {
   const router = useRouter();
+  const emailId = useId();
+  const passwordId = useId();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError(null);
+      setLoading(true);
 
-    try {
-      const supabase = createClient();
-      const { data, error: signInError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      try {
+        const supabase = createClient();
+        const { data, error: signInError } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-      if (signInError) {
-        if (signInError.message.includes("Email not confirmed")) {
-          setError("Tu cuenta no ha sido confirmada. Revisá tu email.");
-        } else {
-          setError("Credenciales inválidas. Intentá de nuevo.");
+        if (signInError) {
+          if (signInError.message.includes("Email not confirmed")) {
+            setError("Tu cuenta no ha sido confirmada. Revisá tu email.");
+          } else {
+            setError("Credenciales inválidas. Intentá de nuevo.");
+          }
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-        return;
-      }
 
-      if (data.session) {
-        router.push("/");
-        router.refresh();
+        if (data.session) {
+          router.push("/");
+          router.refresh();
+        }
+      } catch {
+        setError("Ocurrió un error inesperado. Intentá de nuevo.");
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      setError("Ocurrió un error inesperado. Intentá de nuevo.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [email, password, router],
+  );
 
   return (
     <div
-      className="grid min-h-screen w-full"
-      style={{ gridTemplateColumns: "1.05fr 1fr" }}
+      className="grid min-h-screen w-full lg:grid-cols-[1.05fr_1fr]"
     >
       {/* Left decorative panel */}
-      <div
-        className="relative flex flex-col justify-between p-14 text-white lg:py-14 lg:px-[60px]"
+      <aside
+        aria-label="Información de OpenDayCare"
+        className="relative hidden flex-col justify-between p-14 text-white lg:flex lg:py-14 lg:px-[60px]"
         style={{
           background:
             "linear-gradient(155deg,#F6A98E 0%,#F2937A 45%,#EC7E62 100%)",
@@ -146,26 +152,29 @@ export default function LoginForm() {
         >
           🌿 Guardería Sala Soles
         </div>
-      </div>
+      </aside>
 
       {/* Right form panel */}
-      <div
-        className="flex items-center justify-center p-10"
+      <main
+        className="flex w-full items-center justify-center p-10 lg:col-start-2"
         style={{ background: "#FBF4EC" }}
+        aria-label="Iniciar sesión"
       >
-        <div className="w-full max-w-[392px]">
+        <div className="w-full max-w-[392px]" role="form" aria-labelledby="login-heading">
           <h2
+            id="login-heading"
             className="mb-1.5 mt-0 text-[30px] font-semibold"
             style={{ fontFamily: "var(--font-fredoka)", color: "#3F362E" }}
           >
             Iniciar sesión
           </h2>
-          <p className="mb-7 mt-0 text-[15px]" style={{ color: "#94887B" }}>
+          <p className="mb-7 mt-0 text-[15px]" style={{ color: "#6B5B4A" }}>
             Ingresá para ver el día de hoy.
           </p>
 
           {error && (
             <div
+              role="alert"
               className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm"
               style={{ color: "#C5503A" }}
             >
@@ -175,54 +184,62 @@ export default function LoginForm() {
 
           <form onSubmit={handleSubmit}>
             {/* Email */}
-            <div
-              className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
-              style={{ color: "#94887B" }}
+            <label
+              htmlFor={emailId}
+              className="mb-2 block text-[12px] font-extrabold tracking-[.7px]"
+              style={{ color: "#6B5B4A" }}
             >
               EMAIL
-            </div>
+            </label>
             <input
+              id={emailId}
               type="email"
+              name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="correo@ejemplo.com"
-              className="mb-4.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px]"
+              className="mb-4.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C5503A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF4EC]"
               style={{ borderColor: "#EADFD0", color: "#3F362E" }}
             />
 
             {/* Password */}
-            <div
-              className="mb-2 text-[12px] font-extrabold tracking-[.7px]"
-              style={{ color: "#94887B" }}
+            <label
+              htmlFor={passwordId}
+              className="mb-2 block text-[12px] font-extrabold tracking-[.7px]"
+              style={{ color: "#6B5B4A" }}
             >
               CONTRASEÑA
-            </div>
+            </label>
             <input
+              id={passwordId}
               type="password"
+              name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="mb-2.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px]"
+              className="mb-2.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C5503A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF4EC]"
               style={{ borderColor: "#EADFD0", color: "#3F362E" }}
             />
 
             {/* Forgot password link */}
             <div className="mb-5 text-right">
-              <span
-                className="cursor-pointer text-[13.5px] font-extrabold"
-                style={{ color: "#C5503A" }}
+              <button
+                type="button"
+                className="cursor-pointer bg-transparent text-[13.5px] font-extrabold rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C5503A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF4EC]"
+                style={{ color: "#A8452E" }}
               >
                 ¿Olvidaste tu contraseña?
-              </span>
+              </button>
             </div>
 
             {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
-              className="block w-full text-center text-[16px] font-extrabold text-white"
+              aria-disabled={loading}
+              className="block w-full text-center text-[16px] font-extrabold text-white rounded-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3F362E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF4EC]"
               style={{
                 padding: 15,
                 borderRadius: 15,
@@ -240,18 +257,18 @@ export default function LoginForm() {
           </form>
 
           {/* Activate account link */}
-          <p className="mx-0 mb-0 mt-6 text-center text-[14.5px]" style={{ color: "#94887B" }}>
+          <p className="mx-0 mb-0 mt-6 text-center text-[14.5px]" style={{ color: "#6B5B4A" }}>
             ¿Te invitó la guardería?{" "}
             <Link
               href="/activar-cuenta"
-              className="font-extrabold"
-              style={{ color: "#C5503A" }}
+              className="font-extrabold rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C5503A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF4EC]"
+              style={{ color: "#A8452E" }}
             >
               Activá tu cuenta
             </Link>
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
