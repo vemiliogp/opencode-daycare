@@ -54,17 +54,13 @@ function getRightElement(allergyLabel: string | undefined, parentsCount: number)
 
 interface KidCardProps {
   kid: Kid;
+  mode?: "staff" | "family";
 }
 
-export default function KidCard({ kid }: KidCardProps) {
+export default function KidCard({ kid, mode = "staff" }: KidCardProps) {
   const colors = avatarColors[kid.avatarColor];
-
-  return (
-    <Link
-      href={`/kids/${kid.id}`}
-      className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-border bg-surface p-4 shadow-[0_4px_14px_-12px_rgba(120,90,60,0.5)] transition-[.15s] hover:border-[#F2A78E] hover:-translate-y-0.5"
-      aria-label={`${kid.name}, ${kid.ageYears} años`}
-    >
+  const content = (
+    <>
       <div
         className="flex h-12 w-12 flex-none items-center justify-center rounded-full font-title text-[19px] font-semibold"
         style={{ backgroundColor: colors.bg, color: colors.text }}
@@ -81,6 +77,27 @@ export default function KidCard({ kid }: KidCardProps) {
         </div>
       </div>
       {getRightElement(kid.allergyLabel, kid.parents.length)}
+    </>
+  );
+
+  if (mode === "family") {
+    return (
+      <div
+        className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-border bg-surface p-4 shadow-[0_4px_14px_-12px_rgba(120,90,60,0.5)]"
+        aria-label={`${kid.name}, ${kid.ageYears} años`}
+      >
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/kids/${kid.id}`}
+      className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-border bg-surface p-4 shadow-[0_4px_14px_-12px_rgba(120,90,60,0.5)] transition-[.15s] hover:border-[#F2A78E] hover:-translate-y-0.5"
+      aria-label={`${kid.name}, ${kid.ageYears} años`}
+    >
+      {content}
     </Link>
   );
 }

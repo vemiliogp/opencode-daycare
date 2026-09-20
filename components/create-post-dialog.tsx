@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { kids, slugify } from "@/app/data/kids";
 import { postKindOptions, type PostKind, type Post } from "@/app/data/feed";
-import { useFeed } from "@/components/feed-provider";
+import { useFeedActions } from "@/components/feed-provider";
 import type { Kid } from "@/app/data/kids";
 import MarkdownToolbar from "@/components/markdown-toolbar";
 import ImageUploader from "@/components/image-uploader";
@@ -38,7 +38,7 @@ function formatTime(date: Date): string {
 }
 
 export default function CreatePostDialog() {
-  const { postDialogOpen, closePostDialog, addPost } = useFeed();
+    const { postDialogOpen, closePostDialog, addPost } = useFeedActions();
 
   const [selectedKidIds, setSelectedKidIds] = useState<string[]>([]);
   const [wholeRoom, setWholeRoom] = useState(false);

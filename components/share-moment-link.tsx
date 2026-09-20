@@ -1,6 +1,6 @@
 "use client";
 
-import { useFeed } from "@/components/feed-provider";
+import { useFeedActions } from "@/components/feed-provider";
 
 function CameraMark() {
   return (
@@ -21,7 +21,7 @@ function CameraMark() {
 }
 
 export default function ShareMomentLink() {
-  const { openPostDialog } = useFeed();
+  const { openPostDialog } = useFeedActions();
 
   return (
     <button

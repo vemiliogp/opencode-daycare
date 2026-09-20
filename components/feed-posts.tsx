@@ -2,9 +2,11 @@
 
 import { useFeed } from "@/components/feed-provider";
 import PostCard from "@/components/post-card";
+import type { Post } from "@/app/data/feed";
 
-export default function FeedPosts() {
-  const { posts } = useFeed();
+export default function FeedPosts({ mode = "staff", posts: passedPosts }: { mode?: "staff" | "family"; posts?: Post[] }) {
+  const { posts: contextPosts } = useFeed();
+  const posts = passedPosts ?? contextPosts;
 
   if (posts.length === 0) {
     return (
@@ -19,7 +21,7 @@ export default function FeedPosts() {
       <ul className="flex flex-col gap-4">
         {posts.map((post) => (
           <li key={post.id}>
-            <PostCard post={post} />
+            <PostCard post={post} mode={mode} />
           </li>
         ))}
       </ul>
