@@ -151,7 +151,14 @@ export default function PostCard({ post }: { post: Post }) {
       </header>
       <div className="mb-2.5 text-[12.5px] text-muted">{post.audience}</div>
       <p className="text-[15.5px] leading-[1.55] text-ink-soft">{post.body}</p>
-      {post.photoCaption && (
+      {post.photoCaption && post.imageUrl && (
+        <img
+          src={post.imageUrl}
+          alt={post.photoCaption}
+          className="mt-3.5 max-h-[420px] w-full rounded-[16px] object-cover"
+        />
+      )}
+      {post.photoCaption && !post.imageUrl && (
         <a
           href="#"
           className="mt-3.5 flex h-[200px] flex-col items-center justify-center gap-2 rounded-[16px] border-[1.5px] border-dashed border-[#DBCDBA] bg-[#F4ECE1] text-[#B0A290]"

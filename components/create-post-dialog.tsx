@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { kids, slugify } from "@/app/data/kids";
 import { postKindOptions, type PostKind, type Post } from "@/app/data/feed";
 import { useFeed } from "@/components/feed-provider";
 import type { Kid } from "@/app/data/kids";
+import MarkdownToolbar from "@/components/markdown-toolbar";
+import ImageUploader from "@/components/image-uploader";
+import { createPost } from "@/lib/actions/create-post";
+import { getUserContext } from "@/lib/actions/get-user-context";
 
 const avatarColorMap: Record<Kid["avatarColor"], { bg: string; text: string }> = {
   sky: { bg: "#A9D9E8", text: "#1F7A93" },
@@ -41,6 +45,10 @@ export default function CreatePostDialog() {
   const [kind, setKind] = useState<PostKind | null>(null);
   const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleClose = useCallback(() => {
     setSelectedKidIds([]);
@@ -48,6 +56,9 @@ export default function CreatePostDialog() {
     setKind(null);
     setDescription("");
     setSubmitted(false);
+    setPending(false);
+    setErrorMsg(null);
+    setImageFile(null);
     closePostDialog();
   }, [closePostDialog]);
 
@@ -65,10 +76,40 @@ export default function CreatePostDialog() {
     setWholeRoom(true);
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     setSubmitted(true);
     const hasRecipient = selectedKidIds.length > 0 || wholeRoom;
     if (!hasRecipient || !kind || !description.trim()) return;
+
+    setPending(true);
+    setErrorMsg(null);
+
+    const userCtx = await getUserContext();
+    const daycareId = userCtx.success && userCtx.user?.daycareId
+      ? userCtx.user.daycareId
+      : "mock-daycare";
+    const authorId = userCtx.success && userCtx.user?.id
+      ? userCtx.user.id
+      : "mock-author";
+
+    const audienceType = wholeRoom ? "room" as const : "child" as const;
+    const audienceChildIds = wholeRoom ? undefined : selectedKidIds;
+
+    const result = await createPost({
+      daycareId,
+      authorId,
+      kind,
+      body: description.trim(),
+      imageFile: imageFile || undefined,
+      audienceType,
+      audienceChildIds,
+    });
+
+    if (!result.success) {
+      setErrorMsg(result.error || "Error al crear la publicación");
+      setPending(false);
+      return;
+    }
 
     const selectedKids = solesKids.filter((k) => selectedKidIds.includes(k.id));
     let authorName: string;
@@ -92,7 +133,7 @@ export default function CreatePostDialog() {
     }
 
     const newPost: Post = {
-      id: `${slugify(authorName)}-${Date.now()}`,
+      id: result.postId || `${slugify(authorName)}-${Date.now()}`,
       kind,
       authorName,
       authorInitial,
@@ -100,6 +141,8 @@ export default function CreatePostDialog() {
       publishedByYou: true,
       audience,
       body: description.trim(),
+      photoCaption: result.imageUrl ? "Foto" : undefined,
+      imageUrl: result.imageUrl,
       hearts: 0,
       comments: 0,
     };
@@ -166,10 +209,11 @@ export default function CreatePostDialog() {
           </span>
           <button
             type="button"
-            className="cursor-pointer text-[15px] font-extrabold text-[#D9583C]"
+            className={`cursor-pointer text-[15px] font-extrabold text-[#D9583C] ${pending ? "opacity-50 pointer-events-none" : ""}`}
             onClick={handlePublish}
+            disabled={pending}
           >
-            Publicar
+            {pending ? "Publicando…" : "Publicar"}
           </button>
         </div>
 
@@ -229,48 +273,25 @@ export default function CreatePostDialog() {
           </div>
 
           <div className={labelCls}>DESCRIPCIÓN</div>
+          <MarkdownToolbar
+            textareaRef={textareaRef}
+            value={description}
+            onChange={setDescription}
+          />
           <textarea
+            ref={textareaRef}
             placeholder="Contá cómo le fue hoy…"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className={`mb-5.5 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px] text-[#3F362E] placeholder:text-[#B6A99B] ${descError ? "border-red-500" : "border-[#EADFD0]"}`}
+            className={`mb-2 w-full rounded-[14px] border-[1.5px] bg-white px-4 py-3.5 text-[15px] text-[#3F362E] placeholder:text-[#B6A99B] ${descError ? "border-red-500" : "border-[#EADFD0]"}`}
             style={{ minHeight: 120, resize: "vertical", lineHeight: 1.5 }}
           />
+          {errorMsg && (
+            <p className="mb-3 text-[13px] text-red-500">{errorMsg}</p>
+          )}
 
           <div className={labelCls}>FOTOS</div>
-          <div className="flex gap-3">
-            <div className="flex h-[96px] w-[96px] flex-none items-center justify-center rounded-[14px] border border-[#ECE0D0] bg-[#F4ECE1] text-[#CBB89F]">
-              <svg
-                width="26"
-                height="26"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="9" cy="9" r="2" />
-                <path d="m21 15-3.6-3.6a2 2 0 0 0-2.8 0L6 21" />
-              </svg>
-            </div>
-            <div className="flex h-[96px] w-[96px] flex-none flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#DBCDBA] bg-[#F4ECE1] text-[#B0A290] cursor-pointer">
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#C5503A"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              <span className="text-[12px]">Agregar</span>
-            </div>
-          </div>
+          <ImageUploader onFileChange={setImageFile} />
         </div>
       </div>
     </div>
