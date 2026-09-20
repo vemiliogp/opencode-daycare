@@ -122,7 +122,7 @@ function ImageIconMark() {
   );
 }
 
-export default function PostCard({ post }: { post: Post }) {
+export default function PostCard({ post, mode = "staff" }: { post: Post; mode?: "staff" | "family" }) {
   const visual = kindVisuals[post.kind];
 
   return (
@@ -180,9 +180,11 @@ export default function PostCard({ post }: { post: Post }) {
           {post.comments}
         </a>
         <span className="flex-1" />
-        <a href="#" className="text-[14px] font-extrabold text-[#C5503A]">
-          Editar
-        </a>
+        {mode === "staff" && (
+          <a href="#" className="text-[14px] font-extrabold text-[#C5503A]">
+            Editar
+          </a>
+        )}
       </footer>
     </article>
   );

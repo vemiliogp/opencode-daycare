@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { useFeed } from "@/components/feed-provider";
 
 type NavItem = {
   label: string;
@@ -15,7 +14,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     label: "Feed",
-    href: "/",
+    href: "/family",
     icon: (
       <svg
         width="19"
@@ -32,8 +31,8 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    label: "Niños",
-    href: "/kids",
+    label: "Resumen del día",
+    href: "/family/resumen-dia",
     icon: (
       <svg
         width="19"
@@ -45,33 +44,14 @@ const navItems: NavItem[] = [
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <circle cx="9" cy="7" r="3" />
-        <circle cx="17" cy="9" r="2.4" />
-        <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 20a5 5 0 0 1 5.5-4.9" />
-      </svg>
-    ),
-  },
-  {
-    label: "Avisos",
-    href: "#",
-    icon: (
-      <svg
-        width="19"
-        height="19"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" />
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
       </svg>
     ),
   },
   {
     label: "Mi cuenta",
-    href: "#",
+    href: "/family/account",
     icon: (
       <svg
         width="19"
@@ -104,23 +84,6 @@ function SunMark() {
     >
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-    </svg>
-  );
-}
-
-function PlusMark() {
-  return (
-    <svg
-      width="17"
-      height="17"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#fff"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 5v14M5 12h14" />
     </svg>
   );
 }
@@ -167,9 +130,8 @@ function Brand() {
       </div>
       <div>
         <div className="font-title text-[17px] font-semibold leading-none text-ink">
-          OpenDayCare
+          Familia
         </div>
-        <div className="mt-0.5 text-[11.5px] text-muted">Sala Soles</div>
       </div>
     </div>
   );
@@ -177,82 +139,47 @@ function Brand() {
 
 function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
   const pathname = usePathname();
-  const isActive =
-    item.href === "/"
-      ? pathname === "/"
-      : item.href !== "#" && pathname.startsWith(item.href);
+  const isActive = pathname.startsWith(item.href);
   const base = "flex items-center gap-3 rounded-xl px-3 py-2.75 text-[14.5px]";
   const className = isActive
     ? `${base} bg-[#FBE3D8] font-extrabold text-[#D9583C]`
     : `${base} font-semibold text-[#6E6359]`;
-  const content = (
-    <>
+  return (
+    <Link href={item.href} onClick={onNavigate} className={className}>
       {item.icon}
       {item.label}
-    </>
-  );
-  if (item.href === "/") {
-    return (
-      <Link href="/" onClick={onNavigate} className={className}>
-        {content}
-      </Link>
-    );
-  }
-  if (item.href !== "#") {
-    return (
-      <Link href={item.href} onClick={onNavigate} className={className}>
-        {content}
-      </Link>
-    );
-  }
-  return (
-    <a href="#" className={className}>
-      {content}
-    </a>
+    </Link>
   );
 }
 
-export default function AppSidebar({ children }: { children: ReactNode }) {
+export default function FamilySidebar({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
-  const { openPostDialog } = useFeed();
   const [fullName, setFullName] = useState<string>("");
   const [userInitial, setUserInitial] = useState<string>("");
-  const [roleLabel, setRoleLabel] = useState<string>("");
+  const [relationshipLabel, setRelationshipLabel] = useState<string>("");
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        const { data: profile, error } = await supabase
+        const name = session.user.user_metadata?.full_name || session.user.email || "";
+        setFullName(name);
+        setUserInitial(name.charAt(0).toUpperCase());
+
+        const { data: profile } = await supabase
           .from("users")
-          .select("full_name, role, daycare_id")
+          .select("full_name")
           .eq("id", session.user.id)
           .single();
 
-        if (!error && profile) {
-          const name = profile.full_name || session.user.email || "";
-          setFullName(name);
-          setUserInitial(name.charAt(0).toUpperCase());
-          const roleMap: Record<string, string> = {
-            staff: "Maestra",
-            parent: "Familia",
-            admin: "Admin",
-          };
-          let label = roleMap[profile.role] || profile.role;
-          if (profile.daycare_id) {
-            const { data: daycare } = await supabase
-              .from("daycares")
-              .select("name")
-              .eq("id", profile.daycare_id)
-              .single();
-            if (daycare) {
-              label += ` · ${daycare.name}`;
-            }
-          }
-          setRoleLabel(label);
+        if (profile?.full_name) {
+          setFullName(profile.full_name);
+          setUserInitial(profile.full_name.charAt(0).toUpperCase());
         }
+
+        setRelationshipLabel("Familia");
       }
     });
   }, []);
@@ -278,7 +205,7 @@ export default function AppSidebar({ children }: { children: ReactNode }) {
         >
           <MenuMark />
         </button>
-        <Link href="/" onClick={close}>
+        <Link href="/family" onClick={close}>
           <Brand />
         </Link>
       </header>
@@ -300,23 +227,12 @@ export default function AppSidebar({ children }: { children: ReactNode }) {
         }
       >
         <Link
-          href="/"
+          href="/family"
           onClick={close}
           className="flex items-center gap-2.75 px-2 pt-1 pb-5.5"
         >
           <Brand />
         </Link>
-        <button
-          type="button"
-          onClick={() => {
-            close();
-            openPostDialog();
-          }}
-          className="mb-4.5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(180deg,#F4977E,#EE8164)] p-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,0.75)]"
-        >
-          <PlusMark />
-          Nueva publicación
-        </button>
         <nav className="flex flex-1 flex-col gap-1">
           {navItems.map((item) => (
             <NavItemLink key={item.label} item={item} onNavigate={close} />
@@ -329,7 +245,7 @@ export default function AppSidebar({ children }: { children: ReactNode }) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[14px] font-extrabold text-ink">{fullName}</div>
-              <div className="text-[12px] text-muted">{roleLabel}</div>
+              <div className="text-[12px] text-muted">{relationshipLabel}</div>
             </div>
             <button
               type="button"

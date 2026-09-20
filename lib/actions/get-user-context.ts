@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 export interface UserContext {
   id: string;
   daycareId: string | null;
+  role: "staff" | "parent" | "admin";
 }
 
 export interface UserContextResult {
@@ -33,7 +34,7 @@ export async function getUserContext(): Promise<UserContextResult> {
 
     const { data: dbUser, error: dbError } = await supabase
       .from('users')
-      .select('daycare_id')
+      .select('daycare_id, role')
       .eq('id', user.id)
       .single();
 
@@ -49,6 +50,7 @@ export async function getUserContext(): Promise<UserContextResult> {
       user: {
         id: user.id,
         daycareId: dbUser.daycare_id,
+        role: dbUser.role,
       },
     };
   } catch (error) {

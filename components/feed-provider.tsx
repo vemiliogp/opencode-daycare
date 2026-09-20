@@ -5,6 +5,9 @@ import { feedData, type Post } from "@/app/data/feed";
 
 type FeedContextValue = {
   posts: Post[];
+};
+
+type FeedActionsContextValue = {
   addPost: (post: Post) => void;
   postDialogOpen: boolean;
   openPostDialog: () => void;
@@ -12,6 +15,7 @@ type FeedContextValue = {
 };
 
 const FeedContext = createContext<FeedContextValue | null>(null);
+const FeedActionsContext = createContext<FeedActionsContextValue | null>(null);
 
 export function FeedProvider({ children }: { children: ReactNode }) {
   const [posts, setPosts] = useState<Post[]>(feedData.posts);
@@ -25,10 +29,12 @@ export function FeedProvider({ children }: { children: ReactNode }) {
   const closePostDialog = () => setPostDialogOpen(false);
 
   return (
-    <FeedContext.Provider
-      value={{ posts, addPost, postDialogOpen, openPostDialog, closePostDialog }}
-    >
-      {children}
+    <FeedContext.Provider value={{ posts }}>
+      <FeedActionsContext.Provider
+        value={{ addPost, postDialogOpen, openPostDialog, closePostDialog }}
+      >
+        {children}
+      </FeedActionsContext.Provider>
     </FeedContext.Provider>
   );
 }
@@ -37,6 +43,14 @@ export function useFeed() {
   const ctx = useContext(FeedContext);
   if (!ctx) {
     throw new Error("useFeed must be used within a FeedProvider");
+  }
+  return ctx;
+}
+
+export function useFeedActions() {
+  const ctx = useContext(FeedActionsContext);
+  if (!ctx) {
+    throw new Error("useFeedActions must be used within a FeedProvider");
   }
   return ctx;
 }

@@ -1,11 +1,11 @@
-import AppSidebar from "@/components/app-sidebar";
+import StaffSidebar from "@/components/staff-sidebar";
 import { FeedProvider } from "@/components/feed-provider";
 import CreatePostDialog from "@/components/create-post-dialog";
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default function StaffLayout({ children }: { children: React.ReactNode }) {
   return (
     <FeedProvider>
-      <AppSidebar>{children}</AppSidebar>
+      <StaffSidebar>{children}</StaffSidebar>
       <CreatePostDialog />
     </FeedProvider>
   );
