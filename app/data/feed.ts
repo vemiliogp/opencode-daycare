@@ -27,6 +27,7 @@ export type Post = {
   audience: string;
   body: string;
   photoCaption?: string;
+  imageUrl?: string;
   hearts: number;
   comments: number;
 };
